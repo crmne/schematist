@@ -241,8 +241,9 @@ string :code, min_length: 3, max_length: 10
 
 ### Numbers
 
-Number types support the following properties:
+Number and integer types support the following properties:
 
+- `enum`: an array of allowed numeric values (e.g. `enum: [0, 1, 2]`)
 - `multiple_of`: a multiple of the number (e.g. `multiple_of: 0.01`)
 - `minimum`: the minimum value of the number (e.g. `minimum: 0`)
 - `maximum`: the maximum value of the number (e.g. `maximum: 100`)
@@ -250,6 +251,7 @@ Number types support the following properties:
 ```ruby
 number :price, minimum: 0, maximum: 100
 number :amount, multiple_of: 0.01
+integer :level, enum: [0, 1, 2]
 ```
 
 ### Booleans

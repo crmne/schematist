@@ -18,6 +18,13 @@ RSpec.describe RubyLLM::Schema, "numeric properties" do
     })
   end
 
+  it "supports number enum values" do
+    schema_class.number :score, enum: [0.5, 1.5]
+
+    properties = schema_class.properties
+    expect(properties[:score]).to eq({type: "number", enum: [0.5, 1.5]})
+  end
+
   it "supports number type with description" do
     schema_class.number :price, description: "Price field"
 
@@ -30,5 +37,12 @@ RSpec.describe RubyLLM::Schema, "numeric properties" do
 
     properties = schema_class.properties
     expect(properties[:count]).to eq({type: "integer", description: "Count value"})
+  end
+
+  it "supports integer enum values" do
+    schema_class.integer :level, enum: [0, 1, 2]
+
+    properties = schema_class.properties
+    expect(properties[:level]).to eq({type: "integer", enum: [0, 1, 2]})
   end
 end
