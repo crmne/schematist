@@ -5,6 +5,7 @@ module RubyLLM
     module DSL
       module SchemaBuilders
         NOT_GIVEN = Object.new.freeze
+        SchemaBlock = Struct.new(:schemas, :keywords, keyword_init: true)
 
         def string_schema(description: nil, enum: nil, min_length: nil, max_length: nil, pattern: nil, **options)
           format = options.delete(:format)
@@ -62,40 +63,19 @@ module RubyLLM
           add_const({type: "null", description: description}.compact, const)
         end
 
-        def object_schema(description: nil, of: nil, reference: nil, &block)
+        def object_schema(description: nil, of: nil, reference: nil, unevaluated_properties: nil, &block)
           if reference
             warn "[DEPRECATION] The `reference` option will be deprecated. Please use `of` instead."
             of = reference
           end
 
-          if of
-            determine_object_reference(of, description)
-          else
-            sub_schema = Class.new(Schema)
-            result = sub_schema.class_eval(&block)
+          schema = of ? determine_object_reference(of, description) : build_object_schema(description, &block)
 
-            # If the block returned a reference and no properties were added, use the reference
-            if result.is_a?(Hash) && result["$ref"] && sub_schema.properties.empty?
-              result.merge(description ? {description: description} : {})
-            # If the block returned a Schema class or instance, convert it to inline schema
-            elsif schema_class?(result) && sub_schema.properties.empty?
-              schema_class_to_inline_schema(result).merge(description ? {description: description} : {})
-            # Block didn't return reference or schema, so we build an inline object schema
-            else
-              schema = {
-                type: "object",
-                properties: sub_schema.properties,
-                required: sub_schema.required_properties,
-                additionalProperties: sub_schema.additional_properties,
-                description: description
-              }.compact
-
-              merge_conditions(schema, sub_schema)
-            end
-          end
+          schema[:unevaluatedProperties] = unevaluated_properties unless unevaluated_properties.nil?
+          schema
         end
 
-        def array_schema(description: nil, of: nil, min_items: nil, max_items: nil, &block)
+        def array_schema(description: nil, of: nil, min_items: nil, max_items: nil, unevaluated_items: nil, &block)
           items = determine_array_items(of, &block)
 
           {
@@ -103,44 +83,46 @@ module RubyLLM
             description: description,
             items: items,
             minItems: min_items,
-            maxItems: max_items
+            maxItems: max_items,
+            unevaluatedItems: unevaluated_items
           }.compact
         end
 
         def any_of_schema(description: nil, &block)
-          schemas = collect_schemas_from_block(&block)
+          schema_block = collect_schema_block(&block)
 
           {
             description: description,
-            anyOf: schemas
-          }.compact
+            anyOf: schema_block.schemas
+          }.merge(schema_block.keywords).compact
         end
 
         def one_of_schema(description: nil, &block)
-          schemas = collect_schemas_from_block(&block)
+          schema_block = collect_schema_block(&block)
 
           {
             description: description,
-            oneOf: schemas
-          }.compact
+            oneOf: schema_block.schemas
+          }.merge(schema_block.keywords).compact
         end
 
         def all_of_schema(description: nil, &block)
-          schemas = collect_schemas_from_block(&block)
+          schema_block = collect_schema_block(&block)
 
           {
             description: description,
-            allOf: schemas
-          }.compact
+            allOf: schema_block.schemas
+          }.merge(schema_block.keywords).compact
         end
 
         def none_of_schema(description: nil, &block)
-          schemas = collect_schemas_from_block(&block)
+          schema_block = collect_schema_block(&block)
+          schemas = schema_block.schemas
 
           {
             description: description,
             not: schemas.one? ? schemas.first : {anyOf: schemas}
-          }.compact
+          }.merge(schema_block.keywords).compact
         end
 
         private
@@ -165,6 +147,24 @@ module RubyLLM
           raise InvalidArrayTypeError, "Invalid array type: #{of.inspect}. Must be a primitive type (:string, :number, etc.), a symbol reference, a Schema class, or a Schema instance."
         end
 
+        def build_object_schema(description, &block)
+          sub_schema = Class.new(Schema)
+          result = sub_schema.class_eval(&block)
+
+          return result.merge(description ? {description: description} : {}) if result.is_a?(Hash) && result["$ref"] && sub_schema.properties.empty?
+          return schema_class_to_inline_schema(result).merge(description ? {description: description} : {}) if schema_class?(result) && sub_schema.properties.empty?
+
+          schema = {
+            type: "object",
+            properties: sub_schema.properties,
+            required: sub_schema.required_properties,
+            additionalProperties: sub_schema.additional_properties,
+            description: description
+          }.compact
+
+          merge_conditions(schema, sub_schema)
+        end
+
         def determine_object_reference(of, description = nil)
           result = case of
                    when Symbol
@@ -185,7 +185,11 @@ module RubyLLM
         end
 
         def collect_schemas_from_block(&block)
-          schemas = []
+          collect_schema_block(&block).schemas
+        end
+
+        def collect_schema_block(&block)
+          schema_block = SchemaBlock.new(schemas: [], keywords: {})
           schema_builder = self
 
           context = Object.new
@@ -195,8 +199,16 @@ module RubyLLM
             type_name = schema_method.to_s.sub(/_schema$/, "")
 
             context.define_singleton_method(type_name) do |_name = nil, **options, &blk|
-              schemas << schema_builder.send(schema_method, **options, &blk)
+              schema_block.schemas << schema_builder.send(schema_method, **options, &blk)
             end
+          end
+
+          context.define_singleton_method(:unevaluated_properties) do |value|
+            schema_block.keywords[:unevaluatedProperties] = value
+          end
+
+          context.define_singleton_method(:unevaluated_items) do |value|
+            schema_block.keywords[:unevaluatedItems] = value
           end
 
           # Allow Schema classes to be accessed in the context
@@ -205,7 +217,7 @@ module RubyLLM
           end
 
           context.instance_eval(&block)
-          schemas
+          schema_block
         end
 
         def schema_class_to_inline_schema(schema_class_or_instance)
