@@ -32,6 +32,10 @@ module RubyLLM
           add_property(name, none_of_schema(description: description, **options, &block), required: required, requires: requires)
         end
 
+        def raw(name, schema, required: true, requires: nil)
+          add_property(name, normalize_raw_schema(schema), required: required, requires: requires)
+        end
+
         def optional(name, description: nil, &block)
           any_of(name, description: description) do
             instance_eval(&block)

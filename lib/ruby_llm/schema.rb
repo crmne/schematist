@@ -175,7 +175,7 @@ module RubyLLM
     end
 
     def respond_to_missing?(method_name, include_private = false)
-      %i[string number integer boolean array tuple object any_of one_of all_of none_of null].include?(method_name) || super
+      %i[string number integer boolean array tuple object any_of one_of all_of none_of raw null].include?(method_name) || super
     end
   end
 end

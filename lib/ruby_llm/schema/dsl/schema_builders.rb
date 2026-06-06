@@ -203,7 +203,7 @@ module RubyLLM
 
           schema = metadata.merge({
             description: description,
-            not: schemas.one? ? schemas.first : {anyOf: schemas}
+            not: schemas.length == 1 ? schemas.first : {anyOf: schemas}
           }.compact)
 
           merge_schema_block_keywords(schema, schema_block)
@@ -238,6 +238,19 @@ module RubyLLM
           return schema unless schema_class.respond_to?(:schema_core_keywords)
 
           schema.merge!(schema_class.schema_core_keywords)
+        end
+
+        def normalize_raw_schema(schema)
+          case schema
+          when Hash
+            schema.each_with_object({}) do |(key, value), normalized|
+              normalized[key.is_a?(Symbol) ? key.to_s : key] = normalize_raw_schema(value)
+            end
+          when Array
+            schema.map { |value| normalize_raw_schema(value) }
+          else
+            schema
+          end
         end
 
         def raise_unknown_options!(type, options)
@@ -331,6 +344,18 @@ module RubyLLM
 
           context.define_singleton_method(:content_schema) do |&blk|
             schema_block.keywords[:contentSchema] = schema_builder.send(:collect_schemas_from_block, &blk).first
+          end
+
+          context.define_singleton_method(:any_schema) do
+            schema_block.schemas << true
+          end
+
+          context.define_singleton_method(:no_schema) do
+            schema_block.schemas << false
+          end
+
+          context.define_singleton_method(:raw) do |schema|
+            schema_block.schemas << schema_builder.send(:normalize_raw_schema, schema)
           end
 
           context.define_singleton_method(:description) do |value|
