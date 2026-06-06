@@ -77,16 +77,33 @@ module RubyLLM
           schema
         end
 
-        def array_schema(description: nil, of: nil, min_items: nil, max_items: nil, unevaluated_items: nil, &block)
-          items = determine_array_items(of, &block)
+        def array_schema(description: nil, of: nil, min_items: nil, max_items: nil, unevaluated_items: nil, unique: nil, &block)
+          schema_block = collect_schema_block(&block) if block_given?
+          items = determine_array_items(of, schema_block)
 
-          {
+          schema = {
             type: "array",
             description: description,
             items: items,
             minItems: min_items,
             maxItems: max_items,
+            uniqueItems: unique,
             unevaluatedItems: unevaluated_items
+          }.compact
+
+          schema.merge!(schema_block.keywords) if schema_block
+          schema
+        end
+
+        def tuple_schema(description: nil, &block)
+          schemas = collect_schemas_from_block(&block)
+
+          {
+            type: "array",
+            description: description,
+            prefixItems: schemas,
+            minItems: schemas.length,
+            maxItems: schemas.length
           }.compact
         end
 
@@ -140,8 +157,9 @@ module RubyLLM
           raise ArgumentError, "unknown #{type} schema option: #{options.keys.first.inspect}"
         end
 
-        def determine_array_items(of, &)
-          return collect_schemas_from_block(&).first if block_given?
+        def determine_array_items(of, schema_block = nil)
+          return schema_block.schemas.first if schema_block&.schemas&.any?
+          return nil if schema_block
           return send("#{of}_schema") if primitive_type?(of)
           return reference(of) if of.is_a?(Symbol)
           return schema_class_to_inline_schema(of) if schema_class?(of)
@@ -212,6 +230,12 @@ module RubyLLM
 
           context.define_singleton_method(:unevaluated_items) do |value|
             schema_block.keywords[:unevaluatedItems] = value
+          end
+
+          context.define_singleton_method(:contains) do |min: nil, max: nil, &blk|
+            schema_block.keywords[:contains] = schema_builder.send(:collect_schemas_from_block, &blk).first
+            schema_block.keywords[:minContains] = min unless min.nil?
+            schema_block.keywords[:maxContains] = max unless max.nil?
           end
 
           # Allow Schema classes to be accessed in the context
