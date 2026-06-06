@@ -11,4 +11,11 @@ RSpec.describe RubyLLM::Schema, "boolean properties" do
     properties = schema_class.properties
     expect(properties[:enabled]).to eq({type: "boolean", description: "Enabled field"})
   end
+
+  it "supports boolean const values" do
+    schema_class.boolean :enabled, const: false
+
+    properties = schema_class.properties
+    expect(properties[:enabled]).to eq({type: "boolean", const: false})
+  end
 end

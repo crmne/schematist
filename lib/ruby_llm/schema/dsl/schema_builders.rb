@@ -4,8 +4,14 @@ module RubyLLM
   class Schema
     module DSL
       module SchemaBuilders
-        def string_schema(description: nil, enum: nil, min_length: nil, max_length: nil, pattern: nil, format: nil)
-          {
+        NOT_GIVEN = Object.new.freeze
+
+        def string_schema(description: nil, enum: nil, min_length: nil, max_length: nil, pattern: nil, **options)
+          format = options.delete(:format)
+          const = options.delete(:const) { NOT_GIVEN }
+          raise_unknown_options!("string", options)
+
+          add_const({
             type: "string",
             enum: enum,
             description: description,
@@ -13,11 +19,15 @@ module RubyLLM
             maxLength: max_length,
             pattern: pattern,
             format: format
-          }.compact
+          }.compact, const)
         end
 
-        def number_schema(description: nil, minimum: nil, maximum: nil, greater_than: nil, less_than: nil, multiple_of: nil)
-          {
+        def number_schema(description: nil, minimum: nil, maximum: nil, greater_than: nil, less_than: nil, **options)
+          multiple_of = options.delete(:multiple_of)
+          const = options.delete(:const) { NOT_GIVEN }
+          raise_unknown_options!("number", options)
+
+          add_const({
             type: "number",
             description: description,
             minimum: minimum,
@@ -25,11 +35,15 @@ module RubyLLM
             exclusiveMinimum: greater_than,
             exclusiveMaximum: less_than,
             multipleOf: multiple_of
-          }.compact
+          }.compact, const)
         end
 
-        def integer_schema(description: nil, minimum: nil, maximum: nil, greater_than: nil, less_than: nil, multiple_of: nil)
-          {
+        def integer_schema(description: nil, minimum: nil, maximum: nil, greater_than: nil, less_than: nil, **options)
+          multiple_of = options.delete(:multiple_of)
+          const = options.delete(:const) { NOT_GIVEN }
+          raise_unknown_options!("integer", options)
+
+          add_const({
             type: "integer",
             description: description,
             minimum: minimum,
@@ -37,15 +51,15 @@ module RubyLLM
             exclusiveMinimum: greater_than,
             exclusiveMaximum: less_than,
             multipleOf: multiple_of
-          }.compact
+          }.compact, const)
         end
 
-        def boolean_schema(description: nil)
-          {type: "boolean", description: description}.compact
+        def boolean_schema(description: nil, const: NOT_GIVEN)
+          add_const({type: "boolean", description: description}.compact, const)
         end
 
-        def null_schema(description: nil)
-          {type: "null", description: description}.compact
+        def null_schema(description: nil, const: NOT_GIVEN)
+          add_const({type: "null", description: description}.compact, const)
         end
 
         def object_schema(description: nil, of: nil, reference: nil, &block)
@@ -112,6 +126,17 @@ module RubyLLM
         end
 
         private
+
+        def add_const(schema, const)
+          schema[:const] = const unless const.equal?(NOT_GIVEN)
+          schema
+        end
+
+        def raise_unknown_options!(type, options)
+          return if options.empty?
+
+          raise ArgumentError, "unknown #{type} schema option: #{options.keys.first.inspect}"
+        end
 
         def determine_array_items(of, &)
           return collect_schemas_from_block(&).first if block_given?

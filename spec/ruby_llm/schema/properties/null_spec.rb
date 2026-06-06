@@ -11,4 +11,11 @@ RSpec.describe RubyLLM::Schema, "null properties" do
     properties = schema_class.properties
     expect(properties[:placeholder]).to eq({type: "null", description: "Null field"})
   end
+
+  it "supports null const values" do
+    schema_class.null :deleted_at, const: nil
+
+    properties = schema_class.properties
+    expect(properties[:deleted_at]).to eq({type: "null", const: nil})
+  end
 end

@@ -29,6 +29,13 @@ RSpec.describe RubyLLM::Schema, "numeric properties" do
     })
   end
 
+  it "supports number const values" do
+    schema_class.number :version, const: 1.5
+
+    properties = schema_class.properties
+    expect(properties[:version]).to eq({type: "number", const: 1.5})
+  end
+
   it "supports number type with description" do
     schema_class.number :price, description: "Price field"
 
@@ -52,5 +59,12 @@ RSpec.describe RubyLLM::Schema, "numeric properties" do
       exclusiveMinimum: 17,
       exclusiveMaximum: 66
     })
+  end
+
+  it "supports integer const values" do
+    schema_class.integer :version, const: 1
+
+    properties = schema_class.properties
+    expect(properties[:version]).to eq({type: "integer", const: 1})
   end
 end
