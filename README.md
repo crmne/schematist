@@ -210,6 +210,40 @@ boolean :is_active, description: "Whether the person is active"
 null :placeholder, description: "A placeholder property"
 ```
 
+### Metadata Annotations
+
+Metadata annotations describe schemas for humans and tools. They do not usually affect validation.
+
+Supported annotations are `title`, `description`, `default`, `examples`, `deprecated`, `read_only`, and `write_only`.
+
+Short annotations can be passed as keyword arguments:
+
+```ruby
+string :email,
+  title: "Email address",
+  description: "Primary contact email",
+  default: "user@example.com",
+  examples: ["alice@example.com"],
+  deprecated: false,
+  read_only: false,
+  write_only: false
+```
+
+Longer annotations can live inside complex schema blocks:
+
+```ruby
+object :account do
+  title "Account"
+  description "Billing account metadata used for invoices."
+  examples [{ id: "acct_123", status: "active" }]
+
+  string :id
+  string :status
+end
+```
+
+Block annotations configure the enclosing schema node. If the same annotation is provided both as a keyword and inside the block, the keyword value wins.
+
 ⚠️ Please consult the LLM provider documentation for any limitations or restrictions. For example, as of now, OpenAI requires all properties to be required. In that case, you can use the `any_of` method to make a property optional.
 
 ```ruby

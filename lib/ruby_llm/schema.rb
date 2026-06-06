@@ -34,6 +34,10 @@ module RubyLLM
         @definitions ||= {}
       end
 
+      def schema_metadata
+        @schema_metadata ||= {}
+      end
+
       def name(name = nil)
         @schema_name = name if name
         return @schema_name if defined?(@schema_name)
@@ -41,9 +45,37 @@ module RubyLLM
         super()
       end
 
+      def title(*args)
+        metadata_accessor(:title, *args)
+      end
+
       def description(description = nil)
-        @description = description if description
+        if description
+          @description = description
+          schema_metadata[:description] = description
+        end
+
         @description
+      end
+
+      def default(*args)
+        metadata_accessor(:default, *args)
+      end
+
+      def examples(*args)
+        metadata_accessor(:examples, *args)
+      end
+
+      def deprecated(*args)
+        metadata_accessor(:deprecated, *args)
+      end
+
+      def read_only(*args)
+        metadata_accessor(:readOnly, *args)
+      end
+
+      def write_only(*args)
+        metadata_accessor(:writeOnly, *args)
       end
 
       def additional_properties(value = nil)
@@ -68,6 +100,14 @@ module RubyLLM
       def valid?
         validator = Validator.new(self)
         validator.valid?
+      end
+
+      private
+
+      def metadata_accessor(keyword, *args)
+        return schema_metadata[keyword] if args.empty?
+
+        schema_metadata[keyword] = args.first
       end
     end
 
