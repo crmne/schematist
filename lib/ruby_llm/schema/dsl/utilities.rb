@@ -16,9 +16,23 @@ module RubyLLM
             additionalProperties: sub_schema.additional_properties
           }
 
+          merge_object_keywords(schema, sub_schema)
           merge_conditions(schema, sub_schema)
 
           definitions[name] = schema
+        end
+
+        def object_keywords
+          @object_keywords ||= {}
+        end
+
+        def keys_matching(pattern, &block)
+          object_keywords[:patternProperties] ||= {}
+          object_keywords[:patternProperties][pattern_source(pattern)] = collect_schemas_from_block(&block).first
+        end
+
+        def keys(&block)
+          object_keywords[:propertyNames] = collect_schemas_from_block(&block).first
         end
 
         def reference(schema_name)
@@ -56,6 +70,16 @@ module RubyLLM
 
         def schema_class?(type)
           (type.is_a?(Class) && type < Schema) || type.is_a?(Schema)
+        end
+
+        def merge_object_keywords(schema, schema_class)
+          return schema unless schema_class.respond_to?(:object_keywords)
+
+          schema.merge!(schema_class.object_keywords)
+        end
+
+        def pattern_source(pattern)
+          pattern.is_a?(Regexp) ? pattern.source : pattern.to_s
         end
       end
     end

@@ -63,7 +63,7 @@ module RubyLLM
           add_const({type: "null", description: description}.compact, const)
         end
 
-        def object_schema(description: nil, of: nil, reference: nil, unevaluated_properties: nil, &block)
+        def object_schema(description: nil, of: nil, reference: nil, min_properties: nil, max_properties: nil, unevaluated_properties: nil, &block)
           if reference
             warn "[DEPRECATION] The `reference` option will be deprecated. Please use `of` instead."
             of = reference
@@ -72,6 +72,8 @@ module RubyLLM
           schema = of ? determine_object_reference(of, description) : build_object_schema(description, &block)
 
           schema[:unevaluatedProperties] = unevaluated_properties unless unevaluated_properties.nil?
+          schema[:minProperties] = min_properties unless min_properties.nil?
+          schema[:maxProperties] = max_properties unless max_properties.nil?
           schema
         end
 
@@ -163,6 +165,7 @@ module RubyLLM
           }.compact
 
           merge_conditions(schema, sub_schema)
+          merge_object_keywords(schema, sub_schema)
         end
 
         def determine_object_reference(of, description = nil)
@@ -245,6 +248,7 @@ module RubyLLM
             schema[:description] = description if description
 
             merge_conditions(schema, schema_class)
+            merge_object_keywords(schema, schema_class)
           end
         end
       end
