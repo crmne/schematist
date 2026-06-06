@@ -4,8 +4,8 @@ module RubyLLM
   class Schema
     module DSL
       module PrimitiveTypes
-        def string(name, description: nil, required: true, requires: nil, **options)
-          add_property(name, string_schema(description: description, **options), required: required, requires: requires)
+        def string(name, description: nil, required: true, requires: nil, **options, &block)
+          add_property(name, string_schema(description: description, **options, &block), required: required, requires: requires)
         end
 
         def number(name, description: nil, required: true, requires: nil, **options)

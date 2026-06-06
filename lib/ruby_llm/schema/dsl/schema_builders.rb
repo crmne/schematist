@@ -15,21 +15,28 @@ module RubyLLM
         }.freeze
         SchemaBlock = Struct.new(:schemas, :keywords, keyword_init: true)
 
-        def string_schema(description: nil, enum: nil, min_length: nil, max_length: nil, pattern: nil, **options)
+        def string_schema(description: nil, enum: nil, min_length: nil, max_length: nil, pattern: nil, **options, &block)
           metadata = extract_metadata!(options)
           format = options.delete(:format)
           const = options.delete(:const) { NOT_GIVEN }
+          content_encoding = options.delete(:content_encoding)
+          content_media_type = options.delete(:content_media_type)
           raise_unknown_options!("string", options)
+          schema_block = collect_schema_block(&block) if block_given?
 
-          add_const(metadata.merge({
+          schema = add_const(metadata.merge({
             type: "string",
             enum: enum,
             description: description,
             minLength: min_length,
             maxLength: max_length,
             pattern: pattern,
-            format: format
+            format: format,
+            contentEncoding: content_encoding,
+            contentMediaType: content_media_type
           }.compact), const)
+
+          merge_schema_block_keywords(schema, schema_block)
         end
 
         def number_schema(description: nil, minimum: nil, maximum: nil, greater_than: nil, less_than: nil, **options)
@@ -313,6 +320,10 @@ module RubyLLM
             schema_block.keywords[:contains] = schema_builder.send(:collect_schemas_from_block, &blk).first
             schema_block.keywords[:minContains] = min unless min.nil?
             schema_block.keywords[:maxContains] = max unless max.nil?
+          end
+
+          context.define_singleton_method(:content_schema) do |&blk|
+            schema_block.keywords[:contentSchema] = schema_builder.send(:collect_schemas_from_block, &blk).first
           end
 
           context.define_singleton_method(:description) do |value|
