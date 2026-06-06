@@ -385,6 +385,28 @@ class MySchema < RubyLLM::Schema
 end
 ```
 
+### Core Keywords
+
+Use core keyword methods when a schema or subschema needs an identifier, anchor, comment, dynamic reference, or vocabulary declaration:
+
+```ruby
+id "https://example.com/schemas/person"
+anchor "person"
+comment "Internal note"
+dynamic_anchor "node"
+dynamic_ref "#node"
+vocabulary "https://json-schema.org/draft/2020-12/vocab/core" => true
+
+define :address do
+  anchor "address"
+  comment "Reusable address schema"
+
+  string :street
+end
+```
+
+`dynamic_ref` and `dynamic_anchor` are emitted as JSON Schema core keywords. Their recursive resolution semantics are handled by JSON Schema validators; this gem does not expand or interpret dynamic references.
+
 ### Nested Schemas
 
 You can embed existing schema classes directly within objects or arrays for reusable schema composition.

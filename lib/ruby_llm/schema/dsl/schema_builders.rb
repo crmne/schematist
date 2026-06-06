@@ -234,6 +234,12 @@ module RubyLLM
           schema.replace(schema_class.schema_metadata.merge(schema))
         end
 
+        def merge_core_keywords(schema, schema_class)
+          return schema unless schema_class.respond_to?(:schema_core_keywords)
+
+          schema.merge!(schema_class.schema_core_keywords)
+        end
+
         def raise_unknown_options!(type, options)
           return if options.empty?
 
@@ -266,6 +272,7 @@ module RubyLLM
           }.compact
 
           merge_schema_metadata(schema, sub_schema)
+          merge_core_keywords(schema, sub_schema)
           merge_conditions(schema, sub_schema)
           merge_object_keywords(schema, sub_schema)
         end
@@ -336,6 +343,12 @@ module RubyLLM
             end
           end
 
+          RubyLLM::Schema::CORE_KEYWORDS.each do |method_name, keyword|
+            context.define_singleton_method(method_name) do |value|
+              schema_block.keywords[keyword] = value
+            end
+          end
+
           # Allow Schema classes to be accessed in the context
           context.define_singleton_method(:const_missing) do |name|
             const_get(name) if const_defined?(name)
@@ -368,6 +381,7 @@ module RubyLLM
                           end
 
             merge_schema_metadata(schema, schema_class)
+            merge_core_keywords(schema, schema_class)
             schema[:description] = description if description
 
             merge_conditions(schema, schema_class)

@@ -14,6 +14,14 @@ module RubyLLM
     include JsonOutput
 
     PRIMITIVE_TYPES = %i[string number integer boolean null].freeze
+    CORE_KEYWORDS = {
+      id: "$id",
+      anchor: "$anchor",
+      comment: "$comment",
+      dynamic_anchor: "$dynamicAnchor",
+      dynamic_ref: "$dynamicRef",
+      vocabulary: "$vocabulary"
+    }.freeze
 
     class << self
       def create(&block)
@@ -38,6 +46,10 @@ module RubyLLM
         @schema_metadata ||= {}
       end
 
+      def schema_core_keywords
+        @schema_core_keywords ||= {}
+      end
+
       def name(name = nil)
         @schema_name = name if name
         return @schema_name if defined?(@schema_name)
@@ -47,6 +59,30 @@ module RubyLLM
 
       def title(*args)
         metadata_accessor(:title, *args)
+      end
+
+      def id(*args)
+        core_keyword_accessor("$id", *args)
+      end
+
+      def anchor(*args)
+        core_keyword_accessor("$anchor", *args)
+      end
+
+      def comment(*args)
+        core_keyword_accessor("$comment", *args)
+      end
+
+      def dynamic_anchor(*args)
+        core_keyword_accessor("$dynamicAnchor", *args)
+      end
+
+      def dynamic_ref(*args)
+        core_keyword_accessor("$dynamicRef", *args)
+      end
+
+      def vocabulary(*args)
+        core_keyword_accessor("$vocabulary", *args)
       end
 
       def description(description = nil)
@@ -108,6 +144,12 @@ module RubyLLM
         return schema_metadata[keyword] if args.empty?
 
         schema_metadata[keyword] = args.first
+      end
+
+      def core_keyword_accessor(keyword, *args)
+        return schema_core_keywords[keyword] if args.empty?
+
+        schema_core_keywords[keyword] = args.first
       end
     end
 

@@ -17,6 +17,7 @@ module RubyLLM
           }
 
           merge_schema_metadata(schema, sub_schema)
+          merge_core_keywords(schema, sub_schema)
           merge_object_keywords(schema, sub_schema)
           merge_conditions(schema, sub_schema)
 
