@@ -36,6 +36,13 @@ RSpec.describe RubyLLM::Schema, "numeric properties" do
     expect(properties[:version]).to eq({type: "number", const: 1.5})
   end
 
+  it "supports number enum values" do
+    schema_class.number :rating, enum: [1.5, 2.5, 3.5]
+
+    properties = schema_class.properties
+    expect(properties[:rating]).to eq({type: "number", enum: [1.5, 2.5, 3.5]})
+  end
+
   it "supports number type with description" do
     schema_class.number :price, description: "Price field"
 
@@ -66,5 +73,12 @@ RSpec.describe RubyLLM::Schema, "numeric properties" do
 
     properties = schema_class.properties
     expect(properties[:version]).to eq({type: "integer", const: 1})
+  end
+
+  it "supports integer enum values" do
+    schema_class.integer :level, enum: [0, 1, 2]
+
+    properties = schema_class.properties
+    expect(properties[:level]).to eq({type: "integer", enum: [0, 1, 2]})
   end
 end

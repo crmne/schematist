@@ -41,12 +41,14 @@ module RubyLLM
 
         def number_schema(description: nil, minimum: nil, maximum: nil, greater_than: nil, less_than: nil, **options)
           metadata = extract_metadata!(options)
+          enum = options.delete(:enum)
           multiple_of = options.delete(:multiple_of)
           const = options.delete(:const) { NOT_GIVEN }
           raise_unknown_options!("number", options)
 
           add_const(metadata.merge({
             type: "number",
+            enum: enum,
             description: description,
             minimum: minimum,
             maximum: maximum,
@@ -58,12 +60,14 @@ module RubyLLM
 
         def integer_schema(description: nil, minimum: nil, maximum: nil, greater_than: nil, less_than: nil, **options)
           metadata = extract_metadata!(options)
+          enum = options.delete(:enum)
           multiple_of = options.delete(:multiple_of)
           const = options.delete(:const) { NOT_GIVEN }
           raise_unknown_options!("integer", options)
 
           add_const(metadata.merge({
             type: "integer",
+            enum: enum,
             description: description,
             minimum: minimum,
             maximum: maximum,
