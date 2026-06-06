@@ -1,21 +1,25 @@
 # RubyLLM::Schema
 
 [![Gem Version](https://badge.fury.io/rb/ruby_llm-schema.svg)](https://rubygems.org/gems/ruby_llm-schema)
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/danielfriis/ruby_llm-schema/blob/main/LICENSE.txt)
-[![CI](https://github.com/danielfriis/ruby_llm-schema/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/danielfriis/ruby_llm-schema/actions/workflows/ci.yml)
+[![Gem Downloads](https://img.shields.io/gem/dt/ruby_llm-schema)](https://rubygems.org/gems/ruby_llm-schema)
+[![codecov](https://codecov.io/gh/crmne/ruby_llm-schema/branch/main/graph/badge.svg)](https://codecov.io/gh/crmne/ruby_llm-schema)
+[![Ruby Style Guide](https://img.shields.io/badge/code_style-rubocop-brightgreen.svg)](https://github.com/rubocop/rubocop)
 
-A Ruby DSL for creating JSON schemas with a clean, Rails-inspired API. Perfect for defining structured data schemas for LLM function calling or structured outputs.
+A Ruby DSL for creating JSON schemas with a clean, Rails-inspired API.
+
+Originally created by [Daniel Friis](https://github.com/danielfriis).
 
 ## Use Cases
 
-Structured output is a powerful tool for LLMs to generate consistent and predictable responses.
+JSON Schema is useful wherever Ruby code needs to describe structured data in a portable format.
 
 Some ideal use cases:
 
-- Extracting *metadata, topics, and summary* from articles or blog posts
-- Organizing unstructured feedback or reviews with *sentiment and summary* 
-- Defining structured *actions* from user messages or emails
-- Extracting *entities and relationships* from documents
+- Defining API request and response shapes
+- Describing configuration files or structured payloads
+- Sharing validation contracts across systems
+- Generating structured output schemas for LLM workflows
+- Defining structured parameters for RubyLLM tools
 
 ### Simple Example
 
@@ -24,22 +28,22 @@ class PersonSchema < RubyLLM::Schema
   string :name, description: "Person's full name"
   number :age, description: "Age in years", minimum: 0, maximum: 120
   boolean :active, required: false
-  
+
   object :address do
     string :street
     string :city
     string :country, required: false
   end
-  
+
   array :tags, of: :string, description: "User tags"
-  
+
   array :contacts do
     object do
       string :email, format: "email"
       string :phone, required: false
     end
   end
-  
+
   any_of :status do
     string enum: ["active", "pending", "inactive"]
     null
@@ -49,6 +53,62 @@ end
 # Usage
 schema = PersonSchema.new
 puts schema.to_json
+```
+
+### RubyLLM structured output
+
+```ruby
+class PersonSchema < RubyLLM::Schema
+  string :name, description: "Person's full name"
+  integer :age, description: "Person's age in years"
+  string :city, required: false, description: "City where they live"
+end
+
+# Use it natively with RubyLLM
+chat     = RubyLLM.chat
+response = chat.with_schema(PersonSchema)
+               .ask("Generate a person named Alice who is 30 years old and lives in New York")
+
+# The response is automatically parsed from JSON
+puts response.content # => {"name" => "Alice", "age" => 30}
+puts response.content.class # => Hash
+```
+
+### RubyLLM tools
+
+RubyLLM tools can use schema classes for structured parameters. This is useful when the same argument shape is shared across tools or elsewhere in your app.
+
+```ruby
+class SearchParams < RubyLLM::Schema
+  string :query, description: "Search query"
+  integer :limit, required: false, description: "Maximum results"
+end
+
+class SearchDocuments < RubyLLM::Tool
+  desc "Searches internal documents"
+  params SearchParams
+
+  def execute(query:, limit: 10)
+    DocumentSearch.call(query:, limit:)
+  end
+end
+```
+
+For tool-specific parameters, define the schema inline with `params do ... end`.
+
+```ruby
+class Weather < RubyLLM::Tool
+  desc "Gets current weather"
+
+  params do
+    string :city, description: "City name"
+    string :units, enum: %w[celsius fahrenheit], required: false
+  end
+
+  def execute(city:, units: "celsius")
+    WeatherAPI.current(city:, units:)
+  end
+end
 ```
 
 ## Installation
@@ -82,12 +142,12 @@ class PersonSchema < RubyLLM::Schema
   string :name, description: "Person's full name"
   number :age
   boolean :active, required: false
-  
+
   object :address do
     string :street
     string :city
   end
-  
+
   array :tags, of: :string
 end
 
@@ -102,12 +162,12 @@ PersonSchema = RubyLLM::Schema.create do
   string :name, description: "Person's full name"
   number :age
   boolean :active, required: false
-  
+
   object :address do
     string :street
     string :city
   end
-  
+
   array :tags, of: :string
 end
 
@@ -125,12 +185,12 @@ person_schema = schema "PersonData", description: "A person object" do
   string :name, description: "Person's full name"
   number :age
   boolean :active, required: false
-  
+
   object :address do
     string :street
     string :city
   end
-  
+
   array :tags, of: :string
 end
 
@@ -250,7 +310,7 @@ Union types are a way to specify that a property can be one of several types.
 ```ruby
 any_of :value do
   string
-  number  
+  number
   null
 end
 
@@ -270,7 +330,7 @@ class MySchema < RubyLLM::Schema
     string :latitude
     string :longitude
   end
-  
+
   # Using a reference in an array
   array :coordinates, of: :location
 
@@ -305,7 +365,7 @@ class CompanySchema < RubyLLM::Schema
   # Using 'of' parameter
   object :ceo, of: PersonSchema
   array :employees, of: PersonSchema
-  
+
   # Using Schema.new in block
   object :founder do
     PersonSchema.new
@@ -383,6 +443,65 @@ schema.to_json_schema
 #    }
 # }
 ```
+
+### Dependencies
+
+Use `requires:` inline or `dependent` block to express that the presence of one property requires others. Maps to [`dependentRequired`](https://json-schema.org/understanding-json-schema/reference/conditionals#dependentRequired) (Draft 2019-09) and [`dependentSchemas`](https://json-schema.org/understanding-json-schema/reference/conditionals#dependentSchemas) (Draft 2019-09). Check your provider's documentation for compatibility.
+
+```ruby
+class PaymentSchema < RubyLLM::Schema
+  string :name
+  number :credit_card, required: false, requires: %i[billing_address cvv]
+  string :billing_address, required: false
+  string :cvv, required: false
+end
+```
+
+Use a `dependent` block when you also need validations — this upgrades the output to `dependentSchemas`:
+
+```ruby
+dependent :credit_card do
+  requires :billing_address
+  validates :billing_address, type: :string, min_length: 1
+end
+```
+
+### Conditionals
+
+Use `given` to add [JSON Schema `if`/`then`/`else`](https://json-schema.org/understanding-json-schema/reference/conditionals#ifthenelse) (Draft 7) rules. Condition values are automatically coerced: strings → `const`, arrays → `enum`, regexps → `pattern`, hashes → raw schema.
+
+```ruby
+class OrderSchema < RubyLLM::Schema
+  string :status, enum: ["pending", "shipped", "cancelled"]
+  string :tracking_number, required: false
+  string :cancellation_reason, required: false
+
+  given status: "shipped" do
+    requires :tracking_number
+  end
+
+  given status: "cancelled" do
+    requires :cancellation_reason
+    validates :cancellation_reason, type: :string, min_length: 1
+  end
+end
+```
+
+`validates` supports: `type:`, `not_value:`, `min_length:`, `max_length:`, `pattern:` (string or regexp), `enum:`, `const:`, `minimum:`, `maximum:`.
+
+Use `otherwise` for an `else` branch:
+
+```ruby
+given domestic: true do
+  requires :state
+
+  otherwise do
+    requires :country
+  end
+end
+```
+
+Conditions propagate through nested schemas via `of:`.
 
 ## JSON Output
 

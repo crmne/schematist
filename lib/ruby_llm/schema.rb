@@ -48,14 +48,16 @@ module RubyLLM
 
       def additional_properties(value = nil)
         return @additional_properties ||= false if value.nil?
+
         @additional_properties = value
       end
 
-      def strict(value = nil)
-        if value.nil?
-          return @strict.nil? ? (@strict = true) : @strict
+      def strict(*args)
+        if args.empty?
+          instance_variable_defined?(:@strict) ? @strict : true
+        else
+          @strict = args.first
         end
-        @strict = value
       end
 
       def validate!

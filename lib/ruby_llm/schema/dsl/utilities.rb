@@ -9,12 +9,16 @@ module RubyLLM
           sub_schema = Class.new(Schema)
           sub_schema.class_eval(&)
 
-          definitions[name] = {
+          schema = {
             type: "object",
             properties: sub_schema.properties,
             required: sub_schema.required_properties,
             additionalProperties: sub_schema.additional_properties
           }
+
+          merge_conditions(schema, sub_schema)
+
+          definitions[name] = schema
         end
 
         def reference(schema_name)
@@ -27,9 +31,23 @@ module RubyLLM
 
         private
 
-        def add_property(name, definition, required:)
-          properties[name.to_sym] = definition
-          required_properties << name.to_sym if required
+        def add_property(name, definition, required:, requires: nil)
+          property_name = name.to_sym
+
+          properties[property_name] = definition
+          if required
+            required_properties << property_name unless required_properties.include?(property_name)
+          else
+            required_properties.delete(property_name)
+          end
+
+          if requires
+            builder = ConditionalBuilder.new
+            builder.requires(*Array(requires))
+            dependencies[name.to_s] = builder
+          end
+
+          nil
         end
 
         def primitive_type?(type)
