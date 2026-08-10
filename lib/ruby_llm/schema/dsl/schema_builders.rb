@@ -7,7 +7,9 @@ module RubyLLM
         # What a schema block yields: the schemas declared in it, and the keywords set on the enclosing node
         SchemaBlock = Struct.new(:schemas, :keywords)
 
-        def string_schema(description: nil, enum: nil, const: nil, min_length: nil, max_length: nil, pattern: nil, format: nil, **annotations)
+        def string_schema(description: nil, enum: nil, const: nil, min_length: nil, max_length: nil, pattern: nil, format: nil, content_encoding: nil, content_media_type: nil, **annotations, &block)
+          schema_block = collect_schema_block(&block) if block
+
           annotate({
             type: "string",
             enum: enum,
@@ -16,8 +18,10 @@ module RubyLLM
             minLength: min_length,
             maxLength: max_length,
             pattern: pattern,
-            format: format
-          }.compact, annotations)
+            format: format,
+            contentEncoding: content_encoding,
+            contentMediaType: content_media_type
+          }.compact, annotations, schema_block)
         end
 
         def number_schema(description: nil, minimum: nil, maximum: nil, greater_than: nil, less_than: nil, multiple_of: nil, enum: nil, const: nil, **annotations)
@@ -227,6 +231,10 @@ module RubyLLM
               minContains: min,
               maxContains: max
             }.compact)
+          end
+
+          context.define_singleton_method(:content_schema) do |&blk|
+            schema_block.keywords[:contentSchema] = schema_builder.send(:collect_schemas_from_block, &blk).first
           end
 
           # Annotations set here describe the schema the block belongs to, not the schemas declared inside it
