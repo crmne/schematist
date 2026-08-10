@@ -26,6 +26,16 @@ module RubyLLM
       write_only: :writeOnly
     }.freeze
 
+    # Core keywords identify a schema and point at other schemas.
+    CORE_KEYWORDS = {
+      id: "$id",
+      anchor: "$anchor",
+      comment: "$comment",
+      dynamic_anchor: "$dynamicAnchor",
+      dynamic_ref: "$dynamicRef",
+      vocabulary: "$vocabulary"
+    }.freeze
+
     class << self
       def create(&block)
         schema_class = Class.new(Schema)
@@ -84,6 +94,34 @@ module RubyLLM
         annotation(:write_only, *args)
       end
 
+      def core_keywords
+        @core_keywords ||= {}
+      end
+
+      def id(*args)
+        core_keyword(:id, *args)
+      end
+
+      def anchor(*args)
+        core_keyword(:anchor, *args)
+      end
+
+      def comment(*args)
+        core_keyword(:comment, *args)
+      end
+
+      def dynamic_anchor(*args)
+        core_keyword(:dynamic_anchor, *args)
+      end
+
+      def dynamic_ref(*args)
+        core_keyword(:dynamic_ref, *args)
+      end
+
+      def vocabulary(*args)
+        core_keyword(:vocabulary, *args)
+      end
+
       def additional_properties(value = nil)
         return @additional_properties ||= false if value.nil?
 
@@ -111,10 +149,17 @@ module RubyLLM
       private
 
       def annotation(name, *args)
-        keyword = ANNOTATIONS.fetch(name)
-        return annotations[keyword] if args.empty?
+        read_or_write(annotations, ANNOTATIONS.fetch(name), *args)
+      end
 
-        annotations[keyword] = args.first
+      def core_keyword(name, *args)
+        read_or_write(core_keywords, CORE_KEYWORDS.fetch(name), *args)
+      end
+
+      def read_or_write(store, keyword, *args)
+        return store[keyword] if args.empty?
+
+        store[keyword] = args.first
       end
     end
 
