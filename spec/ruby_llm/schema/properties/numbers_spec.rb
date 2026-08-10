@@ -25,6 +25,17 @@ RSpec.describe RubyLLM::Schema, "numeric properties" do
     expect(properties[:score]).to eq({type: "number", enum: [0.5, 1.5]})
   end
 
+  it "supports exclusive number boundaries" do
+    schema_class.number :score, greater_than: 0, less_than: 100
+
+    properties = schema_class.properties
+    expect(properties[:score]).to eq({
+      type: "number",
+      exclusiveMinimum: 0,
+      exclusiveMaximum: 100
+    })
+  end
+
   it "supports number type with description" do
     schema_class.number :price, description: "Price field"
 
@@ -37,6 +48,17 @@ RSpec.describe RubyLLM::Schema, "numeric properties" do
 
     properties = schema_class.properties
     expect(properties[:count]).to eq({type: "integer", description: "Count value"})
+  end
+
+  it "supports exclusive integer boundaries" do
+    schema_class.integer :age, greater_than: 17, less_than: 66
+
+    properties = schema_class.properties
+    expect(properties[:age]).to eq({
+      type: "integer",
+      exclusiveMinimum: 17,
+      exclusiveMaximum: 66
+    })
   end
 
   it "supports integer enum values" do

@@ -247,9 +247,12 @@ Number and integer types support the following properties:
 - `multiple_of`: a multiple of the number (e.g. `multiple_of: 0.01`)
 - `minimum`: the minimum value of the number (e.g. `minimum: 0`)
 - `maximum`: the maximum value of the number (e.g. `maximum: 100`)
+- `greater_than`: an exclusive minimum (e.g. `greater_than: 0`)
+- `less_than`: an exclusive maximum (e.g. `less_than: 100`)
 
 ```ruby
 number :price, minimum: 0, maximum: 100
+number :score, greater_than: 0, less_than: 100
 number :amount, multiple_of: 0.01
 integer :level, enum: [0, 1, 2]
 ```
