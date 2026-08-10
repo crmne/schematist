@@ -1,10 +1,7 @@
 # frozen_string_literal: true
 
 require "json"
-require "zeitwerk"
 
-# Both define constants that do not match their path: version.rb has to be loadable on its
-# own from the gemspec, and errors.rb holds the whole hierarchy rather than one class.
 require_relative "schematist/version"
 require_relative "schematist/errors"
 
@@ -33,9 +30,17 @@ module Schematist
   }.freeze
 end
 
-loader = Zeitwerk::Loader.for_gem
-loader.inflector.inflect("dsl" => "DSL")
-loader.ignore("#{__dir__}/schematist/version.rb")
-loader.ignore("#{__dir__}/schematist/errors.rb")
-loader.ignore("#{__dir__}/tasks")
-loader.setup
+# Every file defines the constant its path implies. The DSL modules come before dsl.rb,
+# which includes them, and the DSL before schema.rb, which extends it.
+require_relative "schematist/dsl/schema_builders"
+require_relative "schematist/dsl/primitive_types"
+require_relative "schematist/dsl/complex_types"
+require_relative "schematist/dsl/conditional_builder"
+require_relative "schematist/dsl/conditional_context"
+require_relative "schematist/dsl/conditionals"
+require_relative "schematist/dsl/utilities"
+require_relative "schematist/dsl"
+require_relative "schematist/json_output"
+require_relative "schematist/validator"
+require_relative "schematist/helpers"
+require_relative "schematist/schema"
