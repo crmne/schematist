@@ -237,8 +237,9 @@ module RubyLLM
             schema_block.keywords[:contentSchema] = schema_builder.send(:collect_schemas_from_block, &blk).first
           end
 
-          # Annotations set here describe the schema the block belongs to, not the schemas declared inside it
-          ANNOTATIONS.each do |name, keyword|
+          # Annotations and core keywords set here describe the schema the block belongs to,
+          # not the schemas declared inside it
+          ANNOTATIONS.merge(CORE_KEYWORDS).each do |name, keyword|
             context.define_singleton_method(name) do |value|
               schema_block.keywords[keyword] = value
             end
