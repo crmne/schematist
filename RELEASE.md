@@ -1,6 +1,6 @@
 # Release process
 
-1. Bump the version in `lib/ruby_llm/schema/version.rb`
+1. Bump the version in `lib/schematist/version.rb`
 2. Run `bundle install`
 3. Commit the changes with a message like "Bump version to X.Y.Z"
 4. Run `bundle exec rake release:prepare`

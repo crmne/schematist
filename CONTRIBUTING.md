@@ -2,7 +2,7 @@
 
 ## Did you find a bug?
 
-* Search existing issues first: <https://github.com/crmne/ruby_llm-schema/issues>.
+* Search existing issues first: <https://github.com/crmne/schematist/issues>.
 * If it has not been reported, open a new issue with a clear description and a small reproduction.
 * Verify it is a JSON Schema DSL issue, not application-specific code.
 
@@ -31,7 +31,7 @@ Avoid:
 ## Quick Start
 
 ```bash
-gh repo fork crmne/ruby_llm-schema --clone && cd ruby_llm-schema
+gh repo fork crmne/schematist --clone && cd schematist
 bundle install
 overcommit --install
 # make changes, add tests
