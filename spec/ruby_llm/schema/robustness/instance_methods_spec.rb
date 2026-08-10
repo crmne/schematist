@@ -9,12 +9,12 @@ RSpec.describe RubyLLM::Schema, "instance methods" do
 
   it "handles naming correctly" do
     stub_const("TestSchemaClass", build_schema_class)
-    expect(TestSchemaClass.new.to_json_schema[:name]).to eq("TestSchemaClass")
+    expect(TestSchemaClass.new.to_ruby_llm_schema[:name]).to eq("TestSchemaClass")
 
-    expect(schema_class.new.to_json_schema[:name]).to eq("Schema")
-    expect(schema_class.new("CustomName").to_json_schema[:name]).to eq("CustomName")
+    expect(schema_class.new.to_ruby_llm_schema[:name]).to eq("Schema")
+    expect(schema_class.new("CustomName").to_ruby_llm_schema[:name]).to eq("CustomName")
 
-    described_output = schema_class.new("TestName", description: "Custom description").to_json_schema
+    described_output = schema_class.new("TestName", description: "Custom description").to_ruby_llm_schema
     expect(described_output[:name]).to eq("TestName")
     expect(described_output[:description]).to eq("Custom description")
   end
@@ -24,7 +24,7 @@ RSpec.describe RubyLLM::Schema, "instance methods" do
       name "ConfiguredDSLName"
     end
 
-    expect(configured_schema.new.to_json_schema[:name]).to eq("ConfiguredDSLName")
+    expect(configured_schema.new.to_ruby_llm_schema[:name]).to eq("ConfiguredDSLName")
   end
 
   it "supports method delegation for schema methods" do
@@ -42,7 +42,7 @@ RSpec.describe RubyLLM::Schema, "instance methods" do
       integer :age, required: false
     end
 
-    json_output = schema_with_fields.new("TestSchema").to_json_schema
+    json_output = schema_with_fields.new("TestSchema").to_ruby_llm_schema
 
     expect(json_output).to include(
       name: "TestSchema",
@@ -61,6 +61,6 @@ RSpec.describe RubyLLM::Schema, "instance methods" do
 
     json_string = schema_with_fields.new("TestSchema").to_json
     expect(json_string).to be_a(String)
-    expect(JSON.parse(json_string)["name"]).to eq("TestSchema")
+    expect(JSON.parse(json_string)["title"]).to eq("TestSchema")
   end
 end

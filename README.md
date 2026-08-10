@@ -604,71 +604,43 @@ schema = CompanySchema.new
 schema.to_json_schema
 # =>
 # {
-#    "name":"CompanySchema",
-#    "description":"nil",
-#    "schema":{
-#       "type":"object",
-#       "properties":{
-#          "ceo":{
+#    "$schema":"https://json-schema.org/draft/2020-12/schema",
+#    "title":"CompanySchema",
+#    "type":"object",
+#    "properties":{
+#       "ceo":{
+#          "type":"object",
+#          "properties":{
+#             "name":{"type":"string"},
+#             "age":{"type":"integer"}
+#          },
+#          "required":["name","age"],
+#          "additionalProperties":false
+#       },
+#       "employees":{
+#          "type":"array",
+#          "items":{
 #             "type":"object",
 #             "properties":{
-#                "name":{
-#                   "type":"string"
-#                },
-#                "age":{
-#                   "type":"integer"
-#                }
+#                "name":{"type":"string"},
+#                "age":{"type":"integer"}
 #             },
-#             "required":[
-#                :"name",
-#                :"age"
-#             ],
-#             "additionalProperties":false
-#          },
-#          "employees":{
-#             "type":"array",
-#             "items":{
-#                "type":"object",
-#                "properties":{
-#                   "name":{
-#                      "type":"string"
-#                   },
-#                   "age":{
-#                      "type":"integer"
-#                   }
-#                },
-#                "required":[
-#                   :"name",
-#                   :"age"
-#                ],
-#                "additionalProperties":false
-#             }
-#          },
-#          "founder":{
-#             "type":"object",
-#             "properties":{
-#                "name":{
-#                   "type":"string"
-#                },
-#                "age":{
-#                   "type":"integer"
-#                }
-#             },
-#             "required":[
-#                :"name",
-#                :"age"
-#             ],
+#             "required":["name","age"],
 #             "additionalProperties":false
 #          }
 #       },
-#       "required":[
-#          :"ceo",
-#          :"employees",
-#          :"founder"
-#       ],
-#       "additionalProperties":false,
-#       "strict":true
-#    }
+#       "founder":{
+#          "type":"object",
+#          "properties":{
+#             "name":{"type":"string"},
+#             "age":{"type":"integer"}
+#          },
+#          "required":["name","age"],
+#          "additionalProperties":false
+#       }
+#    },
+#    "required":["ceo","employees","founder"],
+#    "additionalProperties":false
 # }
 ```
 
@@ -733,9 +705,31 @@ Conditions propagate through nested schemas via `of:`.
 
 ## JSON Output
 
+`to_json_schema` returns a Draft 2020-12 JSON Schema document with string keys, ready to hand to any JSON Schema validator.
+
 ```ruby
 schema = PersonSchema.new
 schema.to_json_schema
+# => {
+#   "$schema" => "https://json-schema.org/draft/2020-12/schema",
+#   "title" => "PersonSchema",
+#   "type" => "object",
+#   "properties" => { ... },
+#   "required" => [...],
+#   "additionalProperties" => false
+# }
+
+puts schema.to_json  # Pretty JSON string of the same document
+```
+
+The schema name maps to `title`. Provider-only keys such as `strict` are not part of the document.
+
+### Migrating from the provider envelope
+
+`to_json_schema` used to return a RubyLLM/provider envelope. That envelope now lives under `to_ruby_llm_schema`, unchanged:
+
+```ruby
+schema.to_ruby_llm_schema
 # => {
 #   name: "PersonSchema",
 #   description: nil,
@@ -747,9 +741,9 @@ schema.to_json_schema
 #     strict: true
 #   }
 # }
-
-puts schema.to_json  # Pretty JSON string
 ```
+
+If you pass schemas to RubyLLM or another provider that expects the envelope, rename your `to_json_schema` calls to `to_ruby_llm_schema`. If you were reaching into `[:schema]` to get at the document, use `to_json_schema` and drop the digging — but note its keys are strings, not symbols.
 
 ## License
 

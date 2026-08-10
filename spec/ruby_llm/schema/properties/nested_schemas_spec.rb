@@ -59,7 +59,7 @@ RSpec.describe RubyLLM::Schema, "nested schemas" do
     end
 
     instance = schema_class.new
-    properties = instance.to_json_schema[:schema][:properties]
+    properties = instance.to_ruby_llm_schema[:schema][:properties]
 
     level3 = properties[:level1][:properties][:level2][:properties][:level3]
     expect(level3[:properties][:deep_value]).to eq({type: "string"})
@@ -130,7 +130,7 @@ RSpec.describe RubyLLM::Schema, "nested schemas" do
     stub_const("CompanySchema", company_schema)
     instance = company_schema.new("CompanySchema")
 
-    json_output = instance.to_json_schema
+    json_output = instance.to_ruby_llm_schema
     expect(json_output[:schema][:type]).to eq("object")
     expect(json_output[:schema][:properties][:employees][:items]).to eq(person_schema_hash)
     expect(json_output[:schema][:properties][:founder]).to eq(person_schema_hash)

@@ -6,14 +6,14 @@ RSpec.describe RubyLLM::Schema, "comprehensive scenarios" do
   include SchemaBuilders
 
   it "handles edge cases" do
-    empty_output = build_schema_class.new("EmptySchema").to_json_schema
+    empty_output = build_schema_class.new("EmptySchema").to_ruby_llm_schema
     expect(empty_output[:schema][:properties]).to eq({})
     expect(empty_output[:schema][:required]).to eq([])
 
     optional_output = build_schema_class {
       string :optional1, required: false
       integer :optional2, required: false
-    }.new.to_json_schema
+    }.new.to_ruby_llm_schema
 
     expect(optional_output[:schema][:required]).to eq([])
     expect(optional_output[:schema][:properties].keys).to contain_exactly(:optional1, :optional2)
@@ -54,7 +54,7 @@ RSpec.describe RubyLLM::Schema, "comprehensive scenarios" do
       end
 
       array :authors, of: :author
-    }.new("ComplexSchema").to_json_schema
+    }.new("ComplexSchema").to_ruby_llm_schema
 
     expect(complex_output[:schema][:properties].keys).to contain_exactly(
       :id, :metadata, :tags, :items, :status, :authors

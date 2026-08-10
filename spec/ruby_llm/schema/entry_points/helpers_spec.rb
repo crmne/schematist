@@ -8,20 +8,20 @@ RSpec.describe RubyLLM::Schema, "helpers module approach" do
   describe "schema attributes" do
     it "derives schema names from parameters and defaults" do
       named_schema = build_helper_schema("ProvidedName") { string :title }
-      expect(named_schema.to_json_schema[:name]).to eq("ProvidedName")
+      expect(named_schema.to_ruby_llm_schema[:name]).to eq("ProvidedName")
 
       default_schema = build_helper_schema { string :title }
-      expect(default_schema.to_json_schema[:name]).to eq("Schema")
+      expect(default_schema.to_ruby_llm_schema[:name]).to eq("Schema")
     end
 
     it "honours description precedence" do
-      default_output = build_helper_schema("TestSchema") { string :title }.to_json_schema
+      default_output = build_helper_schema("TestSchema") { string :title }.to_ruby_llm_schema
       expect(default_output[:description]).to be_nil
 
       block_description = build_helper_schema("TestSchema") do
         description "Block description"
         string :title
-      end.to_json_schema
+      end.to_ruby_llm_schema
       expect(block_description[:description]).to eq("Block description")
 
       parameter_override = build_helper_schema(
@@ -30,12 +30,12 @@ RSpec.describe RubyLLM::Schema, "helpers module approach" do
       ) do
         description "Block description"
         string :title
-      end.to_json_schema
+      end.to_ruby_llm_schema
       expect(parameter_override[:description]).to eq("Parameter description")
     end
 
     it "controls additional properties and strictness" do
-      default_output = build_helper_schema { string :title }.to_json_schema
+      default_output = build_helper_schema { string :title }.to_ruby_llm_schema
       expect(default_output[:schema][:additionalProperties]).to eq(false)
       expect(default_output[:schema][:strict]).to eq(true)
 
@@ -43,7 +43,7 @@ RSpec.describe RubyLLM::Schema, "helpers module approach" do
         additional_properties true
         strict false
         string :title
-      end.to_json_schema
+      end.to_ruby_llm_schema
 
       expect(configured_output[:schema][:additionalProperties]).to eq(true)
       expect(configured_output[:schema][:strict]).to eq(false)
@@ -57,7 +57,7 @@ RSpec.describe RubyLLM::Schema, "helpers module approach" do
         additional_properties false
         string :title
         integer :count, required: false
-      end.to_json_schema
+      end.to_ruby_llm_schema
 
       expect(json_output).to include(
         name: "HelperConfiguredSchema",
@@ -99,7 +99,7 @@ RSpec.describe RubyLLM::Schema, "helpers module approach" do
           string
           null
         end
-      end.to_json_schema
+      end.to_ruby_llm_schema
 
       expect(json_output[:name]).to eq("HelperSchema")
       expect(json_output[:description]).to eq("Comprehensive helper schema")
