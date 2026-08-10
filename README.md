@@ -480,6 +480,27 @@ object :profile, of: :person, unevaluated_properties: false
 array :values, of: :integer, unevaluated_items: false
 ```
 
+### Runtime Values
+
+Any schema value can be a proc, resolved when the schema is rendered. That lets one schema class produce different documents per instance — useful when an enum comes from the database.
+
+```ruby
+class RoleSchema < RubyLLM::Schema
+  description -> { "Roles available to #{@account.name}" }
+
+  string :role, enum: -> { @account.roles.pluck(:name) }
+
+  def initialize(account:)
+    super()
+    @account = account
+  end
+end
+
+RoleSchema.new(account: account).to_json_schema
+```
+
+A proc with no arguments is evaluated in the instance's context, so it can read instance variables. A proc that takes one argument receives the schema instance instead.
+
 ### Boolean and Raw Schemas
 
 JSON Schema allows `true` and `false` in place of a schema object: `true` accepts every value, `false` accepts none. Inside a block, `any_schema` and `no_schema` emit them.
