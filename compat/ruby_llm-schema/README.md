@@ -14,12 +14,12 @@ The root gemspec builds schematist. This one has to be built from this directory
 ```bash
 cd compat/ruby_llm-schema
 gem build ruby_llm-schema.gemspec
-gem push ruby_llm-schema-0.5.0.gem
+gem push ruby_llm-schema-1.0.0.gem
 ```
 
 schematist 1.0.0 must be on RubyGems first — this gem depends on it.
 
-The version is hardcoded in the gemspec. It is not expected to be released again.
+The version tracks the schematist release it forwards to.
 
 ## What the alias cannot forward
 

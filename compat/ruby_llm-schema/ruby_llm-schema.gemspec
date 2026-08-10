@@ -2,8 +2,9 @@
 
 Gem::Specification.new do |spec|
   spec.name          = 'ruby_llm-schema'
-  # Hardcoded: this gem forwards to schematist and is not expected to be released again.
-  spec.version       = '0.5.0'
+  # Matches the schematist release it forwards to. Also puts this gem outside '~> 0', the
+  # constraint released RubyLLM versions declare, so nobody is upgraded onto it by accident.
+  spec.version       = '1.0.0'
   spec.authors       = ['Daniel Friis', 'Carmine Paolino']
   spec.email         = ['d@friis.me', 'carmine@paolino.me']
 
