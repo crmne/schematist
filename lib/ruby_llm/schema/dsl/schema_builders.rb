@@ -4,10 +4,11 @@ module RubyLLM
   class Schema
     module DSL
       module SchemaBuilders
-        def string_schema(description: nil, enum: nil, min_length: nil, max_length: nil, pattern: nil, format: nil)
+        def string_schema(description: nil, enum: nil, const: nil, min_length: nil, max_length: nil, pattern: nil, format: nil)
           {
             type: "string",
             enum: enum,
+            const: const,
             description: description,
             minLength: min_length,
             maxLength: max_length,
@@ -16,7 +17,7 @@ module RubyLLM
           }.compact
         end
 
-        def number_schema(description: nil, minimum: nil, maximum: nil, greater_than: nil, less_than: nil, multiple_of: nil, enum: nil)
+        def number_schema(description: nil, minimum: nil, maximum: nil, greater_than: nil, less_than: nil, multiple_of: nil, enum: nil, const: nil)
           {
             type: "number",
             description: description,
@@ -25,11 +26,12 @@ module RubyLLM
             exclusiveMinimum: greater_than,
             exclusiveMaximum: less_than,
             multipleOf: multiple_of,
-            enum: enum
+            enum: enum,
+            const: const
           }.compact
         end
 
-        def integer_schema(description: nil, minimum: nil, maximum: nil, greater_than: nil, less_than: nil, multiple_of: nil, enum: nil)
+        def integer_schema(description: nil, minimum: nil, maximum: nil, greater_than: nil, less_than: nil, multiple_of: nil, enum: nil, const: nil)
           {
             type: "integer",
             description: description,
@@ -38,12 +40,13 @@ module RubyLLM
             exclusiveMinimum: greater_than,
             exclusiveMaximum: less_than,
             multipleOf: multiple_of,
-            enum: enum
+            enum: enum,
+            const: const
           }.compact
         end
 
-        def boolean_schema(description: nil)
-          {type: "boolean", description: description}.compact
+        def boolean_schema(description: nil, const: nil)
+          {type: "boolean", description: description, const: const}.compact
         end
 
         def null_schema(description: nil)
