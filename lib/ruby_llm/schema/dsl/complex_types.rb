@@ -32,6 +32,11 @@ module RubyLLM
           add_property(name, none_of_schema(description: description, **options, &block), required: required, requires: requires)
         end
 
+        # Emits a schema fragment verbatim, for the corners of JSON Schema this DSL does not cover
+        def raw(name, schema, required: true, requires: nil)
+          add_property(name, schema, required: required, requires: requires)
+        end
+
         def optional(name, description: nil, &block)
           any_of(name, description: description) do
             instance_eval(&block)

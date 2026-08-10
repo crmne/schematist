@@ -233,6 +233,19 @@ module RubyLLM
             }.compact)
           end
 
+          # The two boolean schemas: true accepts every value, false accepts none
+          context.define_singleton_method(:any_schema) do
+            schema_block.schemas << true
+          end
+
+          context.define_singleton_method(:no_schema) do
+            schema_block.schemas << false
+          end
+
+          context.define_singleton_method(:raw) do |schema|
+            schema_block.schemas << schema
+          end
+
           context.define_singleton_method(:content_schema) do |&blk|
             schema_block.keywords[:contentSchema] = schema_builder.send(:collect_schemas_from_block, &blk).first
           end

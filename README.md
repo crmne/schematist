@@ -480,6 +480,28 @@ object :profile, of: :person, unevaluated_properties: false
 array :values, of: :integer, unevaluated_items: false
 ```
 
+### Boolean and Raw Schemas
+
+JSON Schema allows `true` and `false` in place of a schema object: `true` accepts every value, `false` accepts none. Inside a block, `any_schema` and `no_schema` emit them.
+
+```ruby
+any_of :value do
+  any_schema
+  string
+end
+```
+
+When you need a keyword this DSL doesn't cover, `raw` emits a fragment verbatim.
+
+```ruby
+raw :role, { type: "string", const: "admin" }
+
+any_of :value do
+  raw type: "string", const: "admin"
+  integer
+end
+```
+
 ### Schema Definitions and References
 
 You can define sub-schemas and reference them in other schemas, or reference the root schema to generate recursive schemas.
