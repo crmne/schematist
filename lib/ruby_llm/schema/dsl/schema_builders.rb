@@ -53,40 +53,18 @@ module RubyLLM
           {type: "null", description: description}.compact
         end
 
-        def object_schema(description: nil, of: nil, reference: nil, &block)
+        def object_schema(description: nil, of: nil, reference: nil, unevaluated_properties: nil, &block)
           if reference
             warn "[DEPRECATION] The `reference` option will be deprecated. Please use `of` instead."
             of = reference
           end
 
-          if of
-            determine_object_reference(of, description)
-          else
-            sub_schema = Class.new(Schema)
-            result = sub_schema.class_eval(&block)
-
-            # If the block returned a reference and no properties were added, use the reference
-            if result.is_a?(Hash) && result["$ref"] && sub_schema.properties.empty?
-              result.merge(description ? {description: description} : {})
-            # If the block returned a Schema class or instance, convert it to inline schema
-            elsif schema_class?(result) && sub_schema.properties.empty?
-              schema_class_to_inline_schema(result).merge(description ? {description: description} : {})
-            # Block didn't return reference or schema, so we build an inline object schema
-            else
-              schema = {
-                type: "object",
-                properties: sub_schema.properties,
-                required: sub_schema.required_properties,
-                additionalProperties: sub_schema.additional_properties,
-                description: description
-              }.compact
-
-              merge_conditions(schema, sub_schema)
-            end
-          end
+          schema = of ? determine_object_reference(of, description) : build_object_schema(description, &block)
+          schema[:unevaluatedProperties] = unevaluated_properties unless unevaluated_properties.nil?
+          schema
         end
 
-        def array_schema(description: nil, of: nil, min_items: nil, max_items: nil, &block)
+        def array_schema(description: nil, of: nil, min_items: nil, max_items: nil, unevaluated_items: nil, &block)
           items = determine_array_items(of, &block)
 
           {
@@ -94,47 +72,76 @@ module RubyLLM
             description: description,
             items: items,
             minItems: min_items,
-            maxItems: max_items
+            maxItems: max_items,
+            unevaluatedItems: unevaluated_items
           }.compact
         end
 
-        def any_of_schema(description: nil, &block)
+        def any_of_schema(description: nil, unevaluated_properties: nil, &block)
           schemas = collect_schemas_from_block(&block)
 
           {
             description: description,
-            anyOf: schemas
+            anyOf: schemas,
+            unevaluatedProperties: unevaluated_properties
           }.compact
         end
 
-        def one_of_schema(description: nil, &block)
+        def one_of_schema(description: nil, unevaluated_properties: nil, &block)
           schemas = collect_schemas_from_block(&block)
 
           {
             description: description,
-            oneOf: schemas
+            oneOf: schemas,
+            unevaluatedProperties: unevaluated_properties
           }.compact
         end
 
-        def all_of_schema(description: nil, &block)
+        def all_of_schema(description: nil, unevaluated_properties: nil, &block)
           schemas = collect_schemas_from_block(&block)
 
           {
             description: description,
-            allOf: schemas
+            allOf: schemas,
+            unevaluatedProperties: unevaluated_properties
           }.compact
         end
 
-        def none_of_schema(description: nil, &block)
+        def none_of_schema(description: nil, unevaluated_properties: nil, &block)
           schemas = collect_schemas_from_block(&block)
 
           {
             description: description,
-            not: schemas.size == 1 ? schemas.first : {anyOf: schemas}
+            not: schemas.size == 1 ? schemas.first : {anyOf: schemas},
+            unevaluatedProperties: unevaluated_properties
           }.compact
         end
 
         private
+
+        def build_object_schema(description, &block)
+          sub_schema = Class.new(Schema)
+          result = sub_schema.class_eval(&block)
+
+          # If the block returned a reference and no properties were added, use the reference
+          if result.is_a?(Hash) && result["$ref"] && sub_schema.properties.empty?
+            result.merge(description ? {description: description} : {})
+          # If the block returned a Schema class or instance, convert it to inline schema
+          elsif schema_class?(result) && sub_schema.properties.empty?
+            schema_class_to_inline_schema(result).merge(description ? {description: description} : {})
+          # Block didn't return reference or schema, so we build an inline object schema
+          else
+            schema = {
+              type: "object",
+              properties: sub_schema.properties,
+              required: sub_schema.required_properties,
+              additionalProperties: sub_schema.additional_properties,
+              description: description
+            }.compact
+
+            merge_conditions(schema, sub_schema)
+          end
+        end
 
         def determine_array_items(of, &)
           return collect_schemas_from_block(&).first if block_given?
