@@ -361,6 +361,25 @@ end
 
 `none_of` with a single schema emits `not: { ... }`. With several, it emits `not: { anyOf: [...] }`.
 
+### Unevaluated Properties and Items
+
+`unevaluated_properties` and `unevaluated_items` constrain what is left over after composition, references, and conditionals have had their say. They are most useful on `all_of`, where `additional_properties` cannot see across the branches.
+
+```ruby
+all_of :person, unevaluated_properties: false do
+  object do
+    string :name
+  end
+
+  object do
+    integer :age
+  end
+end
+
+object :profile, of: :person, unevaluated_properties: false
+array :values, of: :integer, unevaluated_items: false
+```
+
 ### Schema Definitions and References
 
 You can define sub-schemas and reference them in other schemas, or reference the root schema to generate recursive schemas.
