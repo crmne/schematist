@@ -22,14 +22,30 @@ module RubyLLM
 
         {
           name: @name,
-          description: @description || self.class.description,
-          schema: schema_hash
+          description: resolve_runtime_values(@description || self.class.description),
+          schema: resolve_runtime_values(schema_hash)
         }
       end
 
       def to_json(*_args)
         validate! # Validate schema before generating JSON string
         JSON.pretty_generate(to_json_schema)
+      end
+
+      private
+
+      # Values declared as procs are resolved here, so one schema class can render differently per instance
+      def resolve_runtime_values(value)
+        case value
+        when Proc
+          resolve_runtime_values(value.arity.zero? ? instance_exec(&value) : value.call(self))
+        when Hash
+          value.transform_values { |nested_value| resolve_runtime_values(nested_value) }
+        when Array
+          value.map { |nested_value| resolve_runtime_values(nested_value) }
+        else
+          value
+        end
       end
     end
   end
