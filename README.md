@@ -294,6 +294,27 @@ array :items do                       # Array of objects
     number :price
   end
 end
+
+array :tags, of: :string, unique: true  # No duplicate items
+
+array :scores do                      # At least one score of 10 or more
+  integer
+
+  contains min: 1 do
+    integer minimum: 10
+  end
+end
+```
+
+### Tuples
+
+A tuple is a fixed-length array where each position has its own schema. It emits `prefixItems` along with matching `minItems` and `maxItems`.
+
+```ruby
+tuple :coordinates do
+  number description: "Latitude"
+  number description: "Longitude"
+end
 ```
 
 ### Objects

@@ -12,6 +12,10 @@ module RubyLLM
           add_property(name, array_schema(description: description, **options, &block), required: required, requires: requires)
         end
 
+        def tuple(name, description: nil, required: true, requires: nil, **options, &block)
+          add_property(name, tuple_schema(description: description, **options, &block), required: required, requires: requires)
+        end
+
         def any_of(name, description: nil, required: true, requires: nil, **options, &block)
           add_property(name, any_of_schema(description: description, **options, &block), required: required, requires: requires)
         end
