@@ -7,8 +7,8 @@ module RubyLLM
         # What a schema block yields: the schemas declared in it, and the keywords set on the enclosing node
         SchemaBlock = Struct.new(:schemas, :keywords)
 
-        def string_schema(description: nil, enum: nil, const: nil, min_length: nil, max_length: nil, pattern: nil, format: nil)
-          {
+        def string_schema(description: nil, enum: nil, const: nil, min_length: nil, max_length: nil, pattern: nil, format: nil, **annotations)
+          annotate({
             type: "string",
             enum: enum,
             const: const,
@@ -17,11 +17,11 @@ module RubyLLM
             maxLength: max_length,
             pattern: pattern,
             format: format
-          }.compact
+          }.compact, annotations)
         end
 
-        def number_schema(description: nil, minimum: nil, maximum: nil, greater_than: nil, less_than: nil, multiple_of: nil, enum: nil, const: nil)
-          {
+        def number_schema(description: nil, minimum: nil, maximum: nil, greater_than: nil, less_than: nil, multiple_of: nil, enum: nil, const: nil, **annotations)
+          annotate({
             type: "number",
             description: description,
             minimum: minimum,
@@ -31,11 +31,11 @@ module RubyLLM
             multipleOf: multiple_of,
             enum: enum,
             const: const
-          }.compact
+          }.compact, annotations)
         end
 
-        def integer_schema(description: nil, minimum: nil, maximum: nil, greater_than: nil, less_than: nil, multiple_of: nil, enum: nil, const: nil)
-          {
+        def integer_schema(description: nil, minimum: nil, maximum: nil, greater_than: nil, less_than: nil, multiple_of: nil, enum: nil, const: nil, **annotations)
+          annotate({
             type: "integer",
             description: description,
             minimum: minimum,
@@ -45,18 +45,18 @@ module RubyLLM
             multipleOf: multiple_of,
             enum: enum,
             const: const
-          }.compact
+          }.compact, annotations)
         end
 
-        def boolean_schema(description: nil, const: nil)
-          {type: "boolean", description: description, const: const}.compact
+        def boolean_schema(description: nil, const: nil, **annotations)
+          annotate({type: "boolean", description: description, const: const}.compact, annotations)
         end
 
-        def null_schema(description: nil)
-          {type: "null", description: description}.compact
+        def null_schema(description: nil, **annotations)
+          annotate({type: "null", description: description}.compact, annotations)
         end
 
-        def object_schema(description: nil, of: nil, reference: nil, min_properties: nil, max_properties: nil, unevaluated_properties: nil, &block)
+        def object_schema(description: nil, of: nil, reference: nil, min_properties: nil, max_properties: nil, unevaluated_properties: nil, **annotations, &block)
           if reference
             warn "[DEPRECATION] The `reference` option will be deprecated. Please use `of` instead."
             of = reference
@@ -64,17 +64,17 @@ module RubyLLM
 
           schema = of ? determine_object_reference(of, description) : build_object_schema(description, &block)
 
-          schema.merge!({
+          annotate(schema.merge({
             minProperties: min_properties,
             maxProperties: max_properties,
             unevaluatedProperties: unevaluated_properties
-          }.compact)
+          }.compact), annotations)
         end
 
-        def array_schema(description: nil, of: nil, min_items: nil, max_items: nil, unique: nil, unevaluated_items: nil, &block)
+        def array_schema(description: nil, of: nil, min_items: nil, max_items: nil, unique: nil, unevaluated_items: nil, **annotations, &block)
           schema_block = collect_schema_block(&block) if block
 
-          {
+          annotate({
             type: "array",
             description: description,
             items: determine_array_items(of, schema_block),
@@ -82,62 +82,73 @@ module RubyLLM
             maxItems: max_items,
             uniqueItems: unique,
             unevaluatedItems: unevaluated_items
-          }.compact.merge(schema_block ? schema_block.keywords : {})
+          }.compact, annotations, schema_block)
         end
 
-        def tuple_schema(description: nil, &block)
-          schemas = collect_schemas_from_block(&block)
+        def tuple_schema(description: nil, **annotations, &block)
+          schema_block = collect_schema_block(&block)
+          schemas = schema_block.schemas
 
-          {
+          annotate({
             type: "array",
             description: description,
             prefixItems: schemas,
             minItems: schemas.length,
             maxItems: schemas.length
-          }.compact
+          }.compact, annotations, schema_block)
         end
 
-        def any_of_schema(description: nil, unevaluated_properties: nil, &block)
-          schemas = collect_schemas_from_block(&block)
+        def any_of_schema(description: nil, unevaluated_properties: nil, **annotations, &block)
+          schema_block = collect_schema_block(&block)
 
-          {
+          annotate({
             description: description,
-            anyOf: schemas,
+            anyOf: schema_block.schemas,
             unevaluatedProperties: unevaluated_properties
-          }.compact
+          }.compact, annotations, schema_block)
         end
 
-        def one_of_schema(description: nil, unevaluated_properties: nil, &block)
-          schemas = collect_schemas_from_block(&block)
+        def one_of_schema(description: nil, unevaluated_properties: nil, **annotations, &block)
+          schema_block = collect_schema_block(&block)
 
-          {
+          annotate({
             description: description,
-            oneOf: schemas,
+            oneOf: schema_block.schemas,
             unevaluatedProperties: unevaluated_properties
-          }.compact
+          }.compact, annotations, schema_block)
         end
 
-        def all_of_schema(description: nil, unevaluated_properties: nil, &block)
-          schemas = collect_schemas_from_block(&block)
+        def all_of_schema(description: nil, unevaluated_properties: nil, **annotations, &block)
+          schema_block = collect_schema_block(&block)
 
-          {
+          annotate({
             description: description,
-            allOf: schemas,
+            allOf: schema_block.schemas,
             unevaluatedProperties: unevaluated_properties
-          }.compact
+          }.compact, annotations, schema_block)
         end
 
-        def none_of_schema(description: nil, unevaluated_properties: nil, &block)
-          schemas = collect_schemas_from_block(&block)
+        def none_of_schema(description: nil, unevaluated_properties: nil, **annotations, &block)
+          schema_block = collect_schema_block(&block)
+          schemas = schema_block.schemas
 
-          {
+          annotate({
             description: description,
             not: schemas.size == 1 ? schemas.first : {anyOf: schemas},
             unevaluatedProperties: unevaluated_properties
-          }.compact
+          }.compact, annotations, schema_block)
         end
 
         private
+
+        # Annotations set inside the block are defaults; options and keyword annotations win over them.
+        def annotate(schema, annotations, schema_block = nil)
+          unknown = annotations.keys - ANNOTATIONS.keys
+          raise ArgumentError, "unknown keyword: #{unknown.first.inspect}" if unknown.any?
+
+          block_keywords = schema_block ? schema_block.keywords : {}
+          block_keywords.merge(schema).merge(annotations.transform_keys { |name| ANNOTATIONS.fetch(name) })
+        end
 
         def build_object_schema(description, &block)
           sub_schema = Class.new(Schema)
@@ -216,6 +227,13 @@ module RubyLLM
               minContains: min,
               maxContains: max
             }.compact)
+          end
+
+          # Annotations set here describe the schema the block belongs to, not the schemas declared inside it
+          ANNOTATIONS.each do |name, keyword|
+            context.define_singleton_method(name) do |value|
+              schema_block.keywords[keyword] = value
+            end
           end
 
           # Allow Schema classes to be accessed in the context
