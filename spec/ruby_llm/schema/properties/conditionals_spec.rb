@@ -6,7 +6,7 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
   let(:schema_class) { Class.new(described_class) }
 
   def schema_output
-    schema_class.new.to_json_schema[:schema]
+    schema_class.new.to_ruby_llm_schema[:schema]
   end
 
   describe "condition coercion" do
@@ -334,7 +334,7 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
         array :addresses, of: address_schema, required: false
       end
 
-      items = parent_schema.new.to_json_schema[:schema][:properties][:addresses][:items]
+      items = parent_schema.new.to_ruby_llm_schema[:schema][:properties][:addresses][:items]
 
       expect(items[:if][:properties]["country"]).to eq({const: "US"})
       expect(items[:then][:required]).to eq(["state"])
@@ -511,7 +511,7 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
         object :payment, of: payment_schema
       end
 
-      payment = order_schema.new.to_json_schema[:schema][:properties][:payment]
+      payment = order_schema.new.to_ruby_llm_schema[:schema][:properties][:payment]
 
       expect(payment[:dependentRequired]).to eq({"credit_card" => ["billing_address"]})
     end

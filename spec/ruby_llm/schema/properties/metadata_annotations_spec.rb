@@ -130,6 +130,6 @@ RSpec.describe RubyLLM::Schema, "metadata annotations" do
 
     expect(schema_class.title).to eq("Person")
     expect(schema_class.description).to eq("A person record")
-    expect(schema_class.new.to_json_schema[:description]).to eq("A person record")
+    expect(schema_class.new.to_json_schema["description"]).to eq("A person record")
   end
 end

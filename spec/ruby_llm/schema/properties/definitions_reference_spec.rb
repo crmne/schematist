@@ -20,7 +20,7 @@ RSpec.describe RubyLLM::Schema, "definitions and references" do
     expect(ref_hash).to eq({"$ref" => "#/$defs/address"})
 
     instance = schema_class.new
-    json_output = instance.to_json_schema
+    json_output = instance.to_ruby_llm_schema
 
     expect(json_output[:schema]["$defs"][:address]).to include(
       type: "object",
@@ -41,7 +41,7 @@ RSpec.describe RubyLLM::Schema, "definitions and references" do
     schema_class.object :sub_schema, of: :root
 
     instance = schema_class.new
-    json_output = instance.to_json_schema
+    json_output = instance.to_ruby_llm_schema
 
     expect(json_output[:schema][:properties][:sub_schema]).to eq({"$ref" => "#"})
   end
@@ -60,7 +60,7 @@ RSpec.describe RubyLLM::Schema, "definitions and references" do
     end
 
     instance = schema_class.new
-    json_output = instance.to_json_schema
+    json_output = instance.to_ruby_llm_schema
 
     expect(json_output[:schema][:properties][:user][:properties][:address]).to eq({"$ref" => "#/$defs/address"})
     expect(json_output[:schema]["$defs"][:address]).to eq({
@@ -86,7 +86,7 @@ RSpec.describe RubyLLM::Schema, "definitions and references" do
     end
 
     instance = schema_class.new
-    json_output = instance.to_json_schema
+    json_output = instance.to_ruby_llm_schema
 
     expect(json_output[:schema][:properties][:user][:properties][:address]).to eq({"$ref" => "#/$defs/address"})
     expect(json_output[:schema]["$defs"][:address]).to eq({
@@ -124,7 +124,7 @@ RSpec.describe RubyLLM::Schema, "definitions and references" do
 
     schema_class.object :address, of: :address
 
-    defs = schema_class.new.to_json_schema[:schema]["$defs"][:address]
+    defs = schema_class.new.to_ruby_llm_schema[:schema]["$defs"][:address]
 
     expect(defs[:if]).to eq({
       properties: {"country" => {const: "US"}},
@@ -145,7 +145,7 @@ RSpec.describe RubyLLM::Schema, "definitions and references" do
 
     schema_class.object :payment, of: :payment
 
-    defs = schema_class.new.to_json_schema[:schema]["$defs"][:payment]
+    defs = schema_class.new.to_ruby_llm_schema[:schema]["$defs"][:payment]
 
     expect(defs[:dependentRequired]).to eq({"credit_card" => ["billing_address"]})
   end
@@ -158,7 +158,7 @@ RSpec.describe RubyLLM::Schema, "definitions and references" do
 
     schema_class.object :payment, of: :payment
 
-    defs = schema_class.new.to_json_schema[:schema]["$defs"][:payment]
+    defs = schema_class.new.to_ruby_llm_schema[:schema]["$defs"][:payment]
 
     expect(defs[:dependentRequired]).to eq({"credit_card" => ["billing_address"]})
   end

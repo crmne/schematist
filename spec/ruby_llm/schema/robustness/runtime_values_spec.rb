@@ -16,8 +16,8 @@ RSpec.describe RubyLLM::Schema, "runtime schema values" do
     first_schema = schema_class.new(user_names: %w[Alice Bob]).to_json_schema
     second_schema = schema_class.new(user_names: %w[Carol]).to_json_schema
 
-    expect(first_schema[:schema][:properties][:name][:enum]).to eq(%w[Alice Bob])
-    expect(second_schema[:schema][:properties][:name][:enum]).to eq(%w[Carol])
+    expect(first_schema.dig("properties", "name", "enum")).to eq(%w[Alice Bob])
+    expect(second_schema.dig("properties", "name", "enum")).to eq(%w[Carol])
     expect(schema_class.properties[:name][:enum]).to be_a(Proc)
   end
 
@@ -36,9 +36,9 @@ RSpec.describe RubyLLM::Schema, "runtime schema values" do
     end
 
     output = schema_class.new(user_names: %w[Alice Bob]).to_json_schema
-    name_schema = output[:schema][:properties][:users][:items][:properties][:name]
+    name_schema = output.dig("properties", "users", "items", "properties", "name")
 
-    expect(name_schema[:enum]).to eq(%w[Alice Bob])
+    expect(name_schema["enum"]).to eq(%w[Alice Bob])
   end
 
   it "supports procs that receive the schema instance" do
@@ -55,7 +55,7 @@ RSpec.describe RubyLLM::Schema, "runtime schema values" do
 
     output = schema_class.new(allowed_roles: %w[admin user]).to_json_schema
 
-    expect(output[:schema][:properties][:role][:enum]).to eq(%w[admin user])
+    expect(output.dig("properties", "role", "enum")).to eq(%w[admin user])
   end
 
   it "resolves runtime values in the description" do
@@ -68,7 +68,7 @@ RSpec.describe RubyLLM::Schema, "runtime schema values" do
       end
     end
 
-    expect(schema_class.new(audience: "admins").to_json_schema[:description]).to eq("Generated for admins")
+    expect(schema_class.new(audience: "admins").to_json_schema["description"]).to eq("Generated for admins")
   end
 
   it "serializes resolved values to JSON" do
@@ -83,6 +83,6 @@ RSpec.describe RubyLLM::Schema, "runtime schema values" do
 
     output = JSON.parse(schema_class.new(user_names: %w[Alice Bob]).to_json)
 
-    expect(output.dig("schema", "properties", "name", "enum")).to eq(%w[Alice Bob])
+    expect(output.dig("properties", "name", "enum")).to eq(%w[Alice Bob])
   end
 end
