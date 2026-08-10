@@ -124,6 +124,22 @@ RSpec.describe RubyLLM::Schema, "metadata annotations" do
     expect(definition[:properties][:street]).to eq({type: "string"})
   end
 
+  it "supports block annotations on every primitive type" do
+    schema_class.string(:a) { title "A" }
+    schema_class.number(:b) { title "B" }
+    schema_class.integer(:c) { title "C" }
+    schema_class.boolean(:d) { title "D" }
+    schema_class.null(:e) { title "E" }
+
+    expect(schema_class.properties).to eq({
+      a: {type: "string", title: "A"},
+      b: {type: "number", title: "B"},
+      c: {type: "integer", title: "C"},
+      d: {type: "boolean", title: "D"},
+      e: {type: "null", title: "E"}
+    })
+  end
+
   it "supports annotations on the root schema" do
     schema_class.title "Person"
     schema_class.description "A person record"

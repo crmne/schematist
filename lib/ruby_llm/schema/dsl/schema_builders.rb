@@ -24,7 +24,9 @@ module RubyLLM
           }.compact, annotations, schema_block)
         end
 
-        def number_schema(description: nil, minimum: nil, maximum: nil, greater_than: nil, less_than: nil, multiple_of: nil, enum: nil, const: nil, **annotations)
+        def number_schema(description: nil, minimum: nil, maximum: nil, greater_than: nil, less_than: nil, multiple_of: nil, enum: nil, const: nil, **annotations, &block)
+          schema_block = collect_schema_block(&block) if block
+
           annotate({
             type: "number",
             description: description,
@@ -35,10 +37,12 @@ module RubyLLM
             multipleOf: multiple_of,
             enum: enum,
             const: const
-          }.compact, annotations)
+          }.compact, annotations, schema_block)
         end
 
-        def integer_schema(description: nil, minimum: nil, maximum: nil, greater_than: nil, less_than: nil, multiple_of: nil, enum: nil, const: nil, **annotations)
+        def integer_schema(description: nil, minimum: nil, maximum: nil, greater_than: nil, less_than: nil, multiple_of: nil, enum: nil, const: nil, **annotations, &block)
+          schema_block = collect_schema_block(&block) if block
+
           annotate({
             type: "integer",
             description: description,
@@ -49,15 +53,19 @@ module RubyLLM
             multipleOf: multiple_of,
             enum: enum,
             const: const
-          }.compact, annotations)
+          }.compact, annotations, schema_block)
         end
 
-        def boolean_schema(description: nil, const: nil, **annotations)
-          annotate({type: "boolean", description: description, const: const}.compact, annotations)
+        def boolean_schema(description: nil, const: nil, **annotations, &block)
+          schema_block = collect_schema_block(&block) if block
+
+          annotate({type: "boolean", description: description, const: const}.compact, annotations, schema_block)
         end
 
-        def null_schema(description: nil, **annotations)
-          annotate({type: "null", description: description}.compact, annotations)
+        def null_schema(description: nil, **annotations, &block)
+          schema_block = collect_schema_block(&block) if block
+
+          annotate({type: "null", description: description}.compact, annotations, schema_block)
         end
 
         def object_schema(description: nil, of: nil, reference: nil, min_properties: nil, max_properties: nil, unevaluated_properties: nil, **annotations, &block)
