@@ -25,6 +25,13 @@ RSpec.describe RubyLLM::Schema, "numeric properties" do
     expect(properties[:score]).to eq({type: "number", enum: [0.5, 1.5]})
   end
 
+  it "supports number const values" do
+    schema_class.number :version, const: 1.5
+
+    properties = schema_class.properties
+    expect(properties[:version]).to eq({type: "number", const: 1.5})
+  end
+
   it "supports exclusive number boundaries" do
     schema_class.number :score, greater_than: 0, less_than: 100
 
@@ -48,6 +55,13 @@ RSpec.describe RubyLLM::Schema, "numeric properties" do
 
     properties = schema_class.properties
     expect(properties[:count]).to eq({type: "integer", description: "Count value"})
+  end
+
+  it "supports integer const values" do
+    schema_class.integer :version, const: 1
+
+    properties = schema_class.properties
+    expect(properties[:version]).to eq({type: "integer", const: 1})
   end
 
   it "supports exclusive integer boundaries" do
