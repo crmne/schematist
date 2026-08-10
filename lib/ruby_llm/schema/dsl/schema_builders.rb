@@ -53,15 +53,19 @@ module RubyLLM
           {type: "null", description: description}.compact
         end
 
-        def object_schema(description: nil, of: nil, reference: nil, unevaluated_properties: nil, &block)
+        def object_schema(description: nil, of: nil, reference: nil, min_properties: nil, max_properties: nil, unevaluated_properties: nil, &block)
           if reference
             warn "[DEPRECATION] The `reference` option will be deprecated. Please use `of` instead."
             of = reference
           end
 
           schema = of ? determine_object_reference(of, description) : build_object_schema(description, &block)
-          schema[:unevaluatedProperties] = unevaluated_properties unless unevaluated_properties.nil?
-          schema
+
+          schema.merge!({
+            minProperties: min_properties,
+            maxProperties: max_properties,
+            unevaluatedProperties: unevaluated_properties
+          }.compact)
         end
 
         def array_schema(description: nil, of: nil, min_items: nil, max_items: nil, unevaluated_items: nil, &block)
@@ -139,7 +143,7 @@ module RubyLLM
               description: description
             }.compact
 
-            merge_conditions(schema, sub_schema)
+            merge_schema_keywords(schema, sub_schema)
           end
         end
 
@@ -219,7 +223,7 @@ module RubyLLM
 
             schema[:description] = description if description
 
-            merge_conditions(schema, schema_class)
+            merge_schema_keywords(schema, schema_class)
           end
         end
       end

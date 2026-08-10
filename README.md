@@ -312,6 +312,32 @@ object :settings, description: "User preferences" do
 end
 ```
 
+### Object Key Constraints
+
+Objects can constrain how many properties they carry, and what their keys look like.
+
+- `min_properties` / `max_properties`: how many properties the object may have
+- `keys`: a schema every property name must match, as JSON Schema `propertyNames`
+- `keys_matching`: a schema for the properties whose names match a pattern, as JSON Schema `patternProperties`
+
+```ruby
+object :metadata, min_properties: 1, max_properties: 10 do
+  keys do
+    string pattern: "^[a-z_]+$"
+  end
+
+  keys_matching(/^x-/) do
+    string
+  end
+
+  keys_matching(/^count_/) do
+    integer minimum: 0
+  end
+end
+```
+
+`keys` and `keys_matching` also work at the root of a schema class and inside `define`.
+
 ### Union Types (anyOf)
 
 Union types are a way to specify that a property can be one of several types.

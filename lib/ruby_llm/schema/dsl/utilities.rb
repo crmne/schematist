@@ -16,9 +16,26 @@ module RubyLLM
             additionalProperties: sub_schema.additional_properties
           }
 
-          merge_conditions(schema, sub_schema)
+          merge_schema_keywords(schema, sub_schema)
 
           definitions[name] = schema
+        end
+
+        def object_keywords
+          @object_keywords ||= {}
+        end
+
+        # Constrains the names of properties matching a pattern, as JSON Schema patternProperties
+        def keys_matching(pattern, &block)
+          pattern = pattern.source if pattern.is_a?(Regexp)
+
+          object_keywords[:patternProperties] ||= {}
+          object_keywords[:patternProperties][pattern] = collect_schemas_from_block(&block).first
+        end
+
+        # Constrains every property name, as JSON Schema propertyNames
+        def keys(&block)
+          object_keywords[:propertyNames] = collect_schemas_from_block(&block).first
         end
 
         def reference(schema_name)
@@ -30,6 +47,12 @@ module RubyLLM
         end
 
         private
+
+        # Merges everything a schema class collects beyond its properties: key constraints and conditionals
+        def merge_schema_keywords(schema, schema_class)
+          schema.merge!(schema_class.object_keywords)
+          merge_conditions(schema, schema_class)
+        end
 
         def add_property(name, definition, required:, requires: nil)
           property_name = name.to_sym
