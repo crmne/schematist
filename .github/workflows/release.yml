@@ -30,15 +30,15 @@ jobs:
         id: check_version
         run: |
           set -euo pipefail
-          VERSION=$(ruby -Ilib -rruby_llm/schema/version -e "puts RubyLLM::Schema::VERSION" 2>/dev/null)
+          VERSION=$(ruby -Ilib -rschematist/version -e "puts Schematist::VERSION" 2>/dev/null)
 
           if [ -z "$VERSION" ]; then
-            echo "Error: Could not extract VERSION from lib/ruby_llm/schema/version.rb" >&2
+            echo "Error: Could not extract VERSION from lib/schematist/version.rb" >&2
             exit 1
           fi
           echo "Local version: $VERSION"
 
-          GEM_NAME="ruby_llm-schema"
+          GEM_NAME="schematist"
           echo "Fetching published versions for '$GEM_NAME'..."
 
           ALL_PUBLISHED_VERSIONS=$(( \
@@ -111,7 +111,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          VERSION=$(ruby -Ilib -rruby_llm/schema/version -e "puts RubyLLM::Schema::VERSION" 2>/dev/null)
+          VERSION=$(ruby -Ilib -rschematist/version -e "puts Schematist::VERSION" 2>/dev/null)
           TAG="v${VERSION}"
 
           git fetch --tags --force

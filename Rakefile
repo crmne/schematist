@@ -12,7 +12,7 @@ Dir.glob('lib/tasks/**/*.rake').each { |r| load r }
 RSpec::Core::RakeTask.new(:spec)
 RuboCop::RakeTask.new(:rubocop)
 
-FLAY_FILES = FileList['lib/ruby_llm/**/*.rb'].to_a.freeze
+FLAY_FILES = FileList['lib/schematist/**/*.rb'].to_a.freeze
 
 desc 'Run specs'
 task test: :spec

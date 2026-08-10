@@ -39,7 +39,7 @@ jobs:
         run: bundle install
 
       - name: Run load guard
-        run: bundle exec ruby -e "require 'ruby_llm/schema'"
+        run: bundle exec ruby -e "require 'schematist'"
 
       - name: Run tests
         if: matrix.ruby-version != '4.0'
@@ -57,5 +57,5 @@ jobs:
         with:
           files: ./coverage/coverage.xml
           token: ${{ secrets.CODECOV_TOKEN }}
-          slug: crmne/ruby_llm-schema
+          slug: crmne/schematist
           fail_ci_if_error: false

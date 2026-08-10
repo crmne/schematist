@@ -9,7 +9,7 @@ on:
       - "Gemfile"
       - "Gemfile.lock"
       - "Rakefile"
-      - "ruby_llm-schema.gemspec"
+      - "schematist.gemspec"
       - ".gitleaks.toml"
       - ".gitleaksignore"
       - ".rubocop.yml"
@@ -18,7 +18,7 @@ on:
       - ".github/workflows/_test-matrix.yml"
       - ".github/workflows/main.yml"
       - ".github/workflows/release.yml"
-      - "lib/ruby_llm/schema/version.rb"
+      - "lib/schematist/version.rb"
   workflow_dispatch:
 
 permissions:
@@ -65,15 +65,15 @@ jobs:
         id: check_version
         run: |
           set -euo pipefail
-          VERSION=$(ruby -Ilib -rruby_llm/schema/version -e "puts RubyLLM::Schema::VERSION" 2>/dev/null)
+          VERSION=$(ruby -Ilib -rschematist/version -e "puts Schematist::VERSION" 2>/dev/null)
 
           if [ -z "$VERSION" ]; then
-            echo "Error: Could not extract VERSION from lib/ruby_llm/schema/version.rb" >&2
+            echo "Error: Could not extract VERSION from lib/schematist/version.rb" >&2
             exit 1
           fi
           echo "Local version: $VERSION"
 
-          GEM_NAME="ruby_llm-schema"
+          GEM_NAME="schematist"
           ALL_PUBLISHED_VERSIONS=$(( \
             gem list ^${GEM_NAME}$ -r --all 2>/dev/null || true; \
             gem list ^${GEM_NAME}$ -r --prerelease 2>/dev/null || true; \

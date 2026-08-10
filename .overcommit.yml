@@ -7,7 +7,7 @@ PreCommit:
   Flay:
     enabled: true
     include:
-      - 'lib/ruby_llm/**/*.rb'
+      - 'lib/schematist/**/*.rb'
     mass_threshold: 70
 
   RSpec:

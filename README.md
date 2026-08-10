@@ -1,8 +1,8 @@
-# RubyLLM::Schema
+# Schematist
 
-[![Gem Version](https://badge.fury.io/rb/ruby_llm-schema.svg)](https://rubygems.org/gems/ruby_llm-schema)
-[![Gem Downloads](https://img.shields.io/gem/dt/ruby_llm-schema)](https://rubygems.org/gems/ruby_llm-schema)
-[![codecov](https://codecov.io/gh/crmne/ruby_llm-schema/branch/main/graph/badge.svg)](https://codecov.io/gh/crmne/ruby_llm-schema)
+[![Gem Version](https://badge.fury.io/rb/schematist.svg)](https://rubygems.org/gems/schematist)
+[![Gem Downloads](https://img.shields.io/gem/dt/schematist)](https://rubygems.org/gems/schematist)
+[![codecov](https://codecov.io/gh/crmne/schematist/branch/main/graph/badge.svg)](https://codecov.io/gh/crmne/schematist)
 [![Ruby Style Guide](https://img.shields.io/badge/code_style-rubocop-brightgreen.svg)](https://github.com/rubocop/rubocop)
 
 A Ruby DSL for creating JSON schemas with a clean, Rails-inspired API.
@@ -24,7 +24,7 @@ Some ideal use cases:
 ### Simple Example
 
 ```ruby
-class PersonSchema < RubyLLM::Schema
+class PersonSchema < Schematist::Schema
   string :name, description: "Person's full name"
   number :age, description: "Age in years", minimum: 0, maximum: 120
   boolean :active, required: false
@@ -58,7 +58,7 @@ puts schema.to_json
 ### RubyLLM structured output
 
 ```ruby
-class PersonSchema < RubyLLM::Schema
+class PersonSchema < Schematist::Schema
   string :name, description: "Person's full name"
   integer :age, description: "Person's age in years"
   string :city, required: false, description: "City where they live"
@@ -79,7 +79,7 @@ puts response.content.class # => Hash
 RubyLLM tools can use schema classes for structured parameters. This is useful when the same argument shape is shared across tools or elsewhere in your app.
 
 ```ruby
-class SearchParams < RubyLLM::Schema
+class SearchParams < Schematist::Schema
   string :query, description: "Search query"
   integer :limit, required: false, description: "Maximum results"
 end
@@ -116,7 +116,7 @@ end
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'ruby_llm-schema'
+gem 'schematist'
 ```
 
 And then execute:
@@ -128,7 +128,7 @@ bundle install
 Or install it yourself as:
 
 ```bash
-gem install ruby_llm-schema
+gem install schematist
 ```
 
 ## Usage
@@ -138,7 +138,7 @@ Three approaches for creating schemas:
 ### Class Inheritance
 
 ```ruby
-class PersonSchema < RubyLLM::Schema
+class PersonSchema < Schematist::Schema
   string :name, description: "Person's full name"
   number :age
   boolean :active, required: false
@@ -158,7 +158,7 @@ puts schema.to_json
 ### Factory Method
 
 ```ruby
-PersonSchema = RubyLLM::Schema.create do
+PersonSchema = Schematist::Schema.create do
   string :name, description: "Person's full name"
   number :age
   boolean :active, required: false
@@ -178,8 +178,8 @@ puts schema.to_json
 ### Global Helper
 
 ```ruby
-require 'ruby_llm/schema'
-include RubyLLM::Helpers
+require 'schematist'
+include Schematist::Helpers
 
 person_schema = schema "PersonData", description: "A person object" do
   string :name, description: "Person's full name"
@@ -485,7 +485,7 @@ array :values, of: :integer, unevaluated_items: false
 Any schema value can be a proc, resolved when the schema is rendered. That lets one schema class produce different documents per instance — useful when an enum comes from the database.
 
 ```ruby
-class RoleSchema < RubyLLM::Schema
+class RoleSchema < Schematist::Schema
   description -> { "Roles available to #{@account.name}" }
 
   string :role, enum: -> { @account.roles.pluck(:name) }
@@ -528,7 +528,7 @@ end
 You can define sub-schemas and reference them in other schemas, or reference the root schema to generate recursive schemas.
 
 ```ruby
-class MySchema < RubyLLM::Schema
+class MySchema < Schematist::Schema
   define :location do
     string :latitude
     string :longitude
@@ -559,7 +559,7 @@ end
 Use core keywords when a schema or subschema needs an identifier, anchor, comment, dynamic reference, or vocabulary declaration.
 
 ```ruby
-class Node < RubyLLM::Schema
+class Node < Schematist::Schema
   id "https://example.com/schemas/node"
   comment "Internal note"
   dynamic_anchor "node"
@@ -584,12 +584,12 @@ end
 You can embed existing schema classes directly within objects or arrays for reusable schema composition.
 
 ```ruby
-class PersonSchema < RubyLLM::Schema
+class PersonSchema < Schematist::Schema
   string :name
   integer :age
 end
 
-class CompanySchema < RubyLLM::Schema
+class CompanySchema < Schematist::Schema
   # Using 'of' parameter
   object :ceo, of: PersonSchema
   array :employees, of: PersonSchema
@@ -649,7 +649,7 @@ schema.to_json_schema
 Use `requires:` inline or `dependent` block to express that the presence of one property requires others. Maps to [`dependentRequired`](https://json-schema.org/understanding-json-schema/reference/conditionals#dependentRequired) (Draft 2019-09) and [`dependentSchemas`](https://json-schema.org/understanding-json-schema/reference/conditionals#dependentSchemas) (Draft 2019-09). Check your provider's documentation for compatibility.
 
 ```ruby
-class PaymentSchema < RubyLLM::Schema
+class PaymentSchema < Schematist::Schema
   string :name
   number :credit_card, required: false, requires: %i[billing_address cvv]
   string :billing_address, required: false
@@ -671,7 +671,7 @@ end
 Use `given` to add [JSON Schema `if`/`then`/`else`](https://json-schema.org/understanding-json-schema/reference/conditionals#ifthenelse) (Draft 7) rules. Condition values are automatically coerced: strings → `const`, arrays → `enum`, regexps → `pattern`, hashes → raw schema.
 
 ```ruby
-class OrderSchema < RubyLLM::Schema
+class OrderSchema < Schematist::Schema
   string :status, enum: ["pending", "shipped", "cancelled"]
   string :tracking_number, required: false
   string :cancellation_reason, required: false
@@ -722,7 +722,24 @@ schema.to_json_schema
 puts schema.to_json  # Pretty JSON string of the same document
 ```
 
-The schema name maps to `title`. Provider-only keys such as `strict` are not part of the document.
+The schema name maps to `title`. Provider-only keys are not part of the document — `strict` was an OpenAI `response_format` flag, not a JSON Schema keyword, and has been removed. Set it where you build the request.
+
+### Migrating from ruby_llm-schema
+
+Schematist was called `ruby_llm-schema`. The old name put a general-purpose JSON Schema DSL inside another gem's namespace and implied it only made sense alongside an LLM client, which was never true.
+
+Update the gem, then the constants:
+
+```ruby
+gem 'schematist'                      # was: gem 'ruby_llm-schema'
+
+class PersonSchema < Schematist::Schema   # was: RubyLLM::Schema
+end
+
+include Schematist::Helpers               # was: RubyLLM::Helpers
+```
+
+Errors moved up a level with the rename — `Schematist::ValidationError`, not `RubyLLM::Schema::ValidationError`. `strict` is gone; see below.
 
 ### Migrating from the provider envelope
 

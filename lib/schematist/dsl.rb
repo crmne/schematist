@@ -1,0 +1,19 @@
+# frozen_string_literal: true
+
+require_relative "dsl/schema_builders"
+require_relative "dsl/primitive_types"
+require_relative "dsl/complex_types"
+require_relative "dsl/conditionals"
+require_relative "dsl/utilities"
+
+module Schematist
+  class Schema
+    module DSL
+      include SchemaBuilders
+      include PrimitiveTypes
+      include ComplexTypes
+      include Conditionals
+      include Utilities
+    end
+  end
+end
