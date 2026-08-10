@@ -4,6 +4,9 @@ module RubyLLM
   class Schema
     module DSL
       module SchemaBuilders
+        # What a schema block yields: the schemas declared in it, and the keywords set on the enclosing node
+        SchemaBlock = Struct.new(:schemas, :keywords)
+
         def string_schema(description: nil, enum: nil, const: nil, min_length: nil, max_length: nil, pattern: nil, format: nil)
           {
             type: "string",
@@ -68,16 +71,29 @@ module RubyLLM
           }.compact)
         end
 
-        def array_schema(description: nil, of: nil, min_items: nil, max_items: nil, unevaluated_items: nil, &block)
-          items = determine_array_items(of, &block)
+        def array_schema(description: nil, of: nil, min_items: nil, max_items: nil, unique: nil, unevaluated_items: nil, &block)
+          schema_block = collect_schema_block(&block) if block
 
           {
             type: "array",
             description: description,
-            items: items,
+            items: determine_array_items(of, schema_block),
             minItems: min_items,
             maxItems: max_items,
+            uniqueItems: unique,
             unevaluatedItems: unevaluated_items
+          }.compact.merge(schema_block ? schema_block.keywords : {})
+        end
+
+        def tuple_schema(description: nil, &block)
+          schemas = collect_schemas_from_block(&block)
+
+          {
+            type: "array",
+            description: description,
+            prefixItems: schemas,
+            minItems: schemas.length,
+            maxItems: schemas.length
           }.compact
         end
 
@@ -147,8 +163,8 @@ module RubyLLM
           end
         end
 
-        def determine_array_items(of, &)
-          return collect_schemas_from_block(&).first if block_given?
+        def determine_array_items(of, schema_block = nil)
+          return schema_block.schemas.first if schema_block
           return send("#{of}_schema") if primitive_type?(of)
           return reference(of) if of.is_a?(Symbol)
           return schema_class_to_inline_schema(of) if schema_class?(of)
@@ -175,8 +191,12 @@ module RubyLLM
           description ? result.merge(description: description) : result
         end
 
-        def collect_schemas_from_block(&block)
-          schemas = []
+        def collect_schemas_from_block(&)
+          collect_schema_block(&).schemas
+        end
+
+        def collect_schema_block(&block)
+          schema_block = SchemaBlock.new([], {})
           schema_builder = self
 
           context = Object.new
@@ -186,8 +206,16 @@ module RubyLLM
             type_name = schema_method.to_s.sub(/_schema$/, "")
 
             context.define_singleton_method(type_name) do |_name = nil, **options, &blk|
-              schemas << schema_builder.send(schema_method, **options, &blk)
+              schema_block.schemas << schema_builder.send(schema_method, **options, &blk)
             end
+          end
+
+          context.define_singleton_method(:contains) do |min: nil, max: nil, &blk|
+            schema_block.keywords.merge!({
+              contains: schema_builder.send(:collect_schemas_from_block, &blk).first,
+              minContains: min,
+              maxContains: max
+            }.compact)
           end
 
           # Allow Schema classes to be accessed in the context
@@ -196,7 +224,7 @@ module RubyLLM
           end
 
           context.instance_eval(&block)
-          schemas
+          schema_block
         end
 
         def schema_class_to_inline_schema(schema_class_or_instance)
