@@ -116,6 +116,24 @@ module RubyLLM
           }.compact
         end
 
+        def all_of_schema(description: nil, &block)
+          schemas = collect_schemas_from_block(&block)
+
+          {
+            description: description,
+            allOf: schemas
+          }.compact
+        end
+
+        def none_of_schema(description: nil, &block)
+          schemas = collect_schemas_from_block(&block)
+
+          {
+            description: description,
+            not: schemas.size == 1 ? schemas.first : {anyOf: schemas}
+          }.compact
+        end
+
         private
 
         def determine_array_items(of, &)

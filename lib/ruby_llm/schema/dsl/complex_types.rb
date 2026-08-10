@@ -20,6 +20,14 @@ module RubyLLM
           add_property(name, one_of_schema(description: description, **options, &block), required: required, requires: requires)
         end
 
+        def all_of(name, description: nil, required: true, requires: nil, **options, &block)
+          add_property(name, all_of_schema(description: description, **options, &block), required: required, requires: requires)
+        end
+
+        def none_of(name, description: nil, required: true, requires: nil, **options, &block)
+          add_property(name, none_of_schema(description: description, **options, &block), required: required, requires: requires)
+        end
+
         def optional(name, description: nil, &block)
           any_of(name, description: description) do
             instance_eval(&block)

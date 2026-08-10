@@ -329,6 +329,38 @@ any_of :identifier do
 end
 ```
 
+### Composition (oneOf, allOf, not)
+
+`one_of` matches exactly one of the given schemas, `all_of` matches all of them, and `none_of` matches none of them.
+
+```ruby
+one_of :payment do
+  object do
+    string :card_number
+  end
+
+  object do
+    string :iban
+  end
+end
+
+all_of :account do
+  object do
+    string :id
+  end
+
+  object do
+    string :status
+  end
+end
+
+none_of :status do
+  string enum: ["deleted"]
+end
+```
+
+`none_of` with a single schema emits `not: { ... }`. With several, it emits `not: { anyOf: [...] }`.
+
 ### Schema Definitions and References
 
 You can define sub-schemas and reference them in other schemas, or reference the root schema to generate recursive schemas.
