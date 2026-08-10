@@ -92,8 +92,8 @@ RSpec.describe RubyLLM::Schema, "object validation keywords" do
       string pattern: "^[a-z_]+$"
     end
 
-    schema = schema_class.new.to_ruby_llm_schema[:schema]
+    schema = schema_class.new.to_json_schema
 
-    expect(schema[:propertyNames]).to eq({type: "string", pattern: "^[a-z_]+$"})
+    expect(schema["propertyNames"]).to eq({"type" => "string", "pattern" => "^[a-z_]+$"})
   end
 end

@@ -2,28 +2,22 @@
 
 require "spec_helper"
 
+# `strict` is an OpenAI response_format flag, not a JSON Schema keyword, so it is not part of
+# the Draft 2020-12 document. It survives only as a class-level accessor for consumers that
+# build a provider envelope themselves.
 RSpec.describe RubyLLM::Schema, ".strict" do
-  it "outputs strict: true by default" do
-    schema = Class.new(RubyLLM::Schema)
-    output = schema.new.to_ruby_llm_schema
-    expect(output[:schema][:strict]).to eq(true)
+  it "defaults to true" do
+    expect(Class.new(RubyLLM::Schema).strict).to eq(true)
   end
 
-  it "omits strict from output when set to nil" do
-    schema = Class.new(RubyLLM::Schema) { strict nil }
-    output = schema.new.to_ruby_llm_schema
-    expect(output[:schema]).not_to have_key(:strict)
+  it "records the configured value" do
+    expect(Class.new(RubyLLM::Schema) { strict false }.strict).to eq(false)
+    expect(Class.new(RubyLLM::Schema) { strict nil }.strict).to be_nil
   end
 
-  it "outputs strict: true when set to true" do
+  it "stays out of the JSON Schema document" do
     schema = Class.new(RubyLLM::Schema) { strict true }
-    output = schema.new.to_ruby_llm_schema
-    expect(output[:schema][:strict]).to eq(true)
-  end
 
-  it "outputs strict: false when set to false" do
-    schema = Class.new(RubyLLM::Schema) { strict false }
-    output = schema.new.to_ruby_llm_schema
-    expect(output[:schema][:strict]).to eq(false)
+    expect(schema.new.to_json_schema).not_to have_key("strict")
   end
 end

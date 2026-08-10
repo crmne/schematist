@@ -6,17 +6,17 @@ RSpec.describe RubyLLM::Schema, "comprehensive scenarios" do
   include SchemaBuilders
 
   it "handles edge cases" do
-    empty_output = build_schema_class.new("EmptySchema").to_ruby_llm_schema
-    expect(empty_output[:schema][:properties]).to eq({})
-    expect(empty_output[:schema][:required]).to eq([])
+    empty_output = build_schema_class.new("EmptySchema").to_json_schema
+    expect(empty_output["properties"]).to eq({})
+    expect(empty_output["required"]).to eq([])
 
     optional_output = build_schema_class {
       string :optional1, required: false
       integer :optional2, required: false
-    }.new.to_ruby_llm_schema
+    }.new.to_json_schema
 
-    expect(optional_output[:schema][:required]).to eq([])
-    expect(optional_output[:schema][:properties].keys).to contain_exactly(:optional1, :optional2)
+    expect(optional_output["required"]).to eq([])
+    expect(optional_output["properties"].keys).to contain_exactly("optional1", "optional2")
   end
 
   it "handles complex nested structures with all features" do
@@ -54,14 +54,14 @@ RSpec.describe RubyLLM::Schema, "comprehensive scenarios" do
       end
 
       array :authors, of: :author
-    }.new("ComplexSchema").to_ruby_llm_schema
+    }.new("ComplexSchema").to_json_schema
 
-    expect(complex_output[:schema][:properties].keys).to contain_exactly(
-      :id, :metadata, :tags, :items, :status, :authors
+    expect(complex_output["properties"].keys).to contain_exactly(
+      "id", "metadata", "tags", "items", "status", "authors"
     )
-    expect(complex_output[:schema]["$defs"][:author]).to be_a(Hash)
-    expect(complex_output[:schema][:required]).to include(:id, :metadata, :tags, :items, :status, :authors)
-    expect(complex_output[:schema][:properties][:id][:description]).to eq("Unique identifier")
-    expect(complex_output[:schema][:properties][:tags][:description]).to eq("Resource tags")
+    expect(complex_output["$defs"]["author"]).to be_a(Hash)
+    expect(complex_output["required"]).to include("id", "metadata", "tags", "items", "status", "authors")
+    expect(complex_output["properties"]["id"]["description"]).to eq("Unique identifier")
+    expect(complex_output["properties"]["tags"]["description"]).to eq("Resource tags")
   end
 end

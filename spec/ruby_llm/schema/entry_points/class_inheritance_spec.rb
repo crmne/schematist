@@ -10,10 +10,10 @@ RSpec.describe RubyLLM::Schema, "class inheritance approach" do
 
     it "derives schema names from constants, instances, and defaults" do
       stub_const("NamedSchema", build_schema_class)
-      expect(NamedSchema.new.to_ruby_llm_schema[:name]).to eq("NamedSchema")
+      expect(NamedSchema.new.to_json_schema["title"]).to eq("NamedSchema")
 
-      expect(base_schema.new.to_ruby_llm_schema[:name]).to eq("Schema")
-      expect(base_schema.new("CustomName").to_ruby_llm_schema[:name]).to eq("CustomName")
+      expect(base_schema.new.to_json_schema["title"]).to eq("Schema")
+      expect(base_schema.new("CustomName").to_json_schema["title"]).to eq("CustomName")
     end
 
     it "honours description precedence" do
@@ -22,30 +22,26 @@ RSpec.describe RubyLLM::Schema, "class inheritance approach" do
         string :title
       end
 
-      anonymous_output = base_schema.new.to_ruby_llm_schema
-      expect(anonymous_output[:description]).to be_nil
+      anonymous_output = base_schema.new.to_json_schema
+      expect(anonymous_output["description"]).to be_nil
 
-      class_level_output = schema_with_description.new.to_ruby_llm_schema
-      expect(class_level_output[:description]).to eq("Class-level description")
+      class_level_output = schema_with_description.new.to_json_schema
+      expect(class_level_output["description"]).to eq("Class-level description")
 
-      instance_override = schema_with_description.new("Test", description: "Instance description").to_ruby_llm_schema
-      expect(instance_override[:description]).to eq("Instance description")
+      instance_override = schema_with_description.new("Test", description: "Instance description").to_json_schema
+      expect(instance_override["description"]).to eq("Instance description")
     end
 
-    it "controls additional properties and strictness" do
-      default_output = base_schema.new.to_ruby_llm_schema
-      expect(default_output[:schema][:additionalProperties]).to eq(false)
-      expect(default_output[:schema][:strict]).to eq(true)
+    it "controls additional properties" do
+      default_output = base_schema.new.to_json_schema
+      expect(default_output["additionalProperties"]).to eq(false)
 
       configured_schema = build_schema_class do
         additional_properties true
-        strict false
         string :title
       end
 
-      configured_output = configured_schema.new.to_ruby_llm_schema
-      expect(configured_output[:schema][:additionalProperties]).to eq(true)
-      expect(configured_output[:schema][:strict]).to eq(false)
+      expect(configured_schema.new.to_json_schema["additionalProperties"]).to eq(true)
     end
 
     it "renders structured JSON schema" do
@@ -56,21 +52,18 @@ RSpec.describe RubyLLM::Schema, "class inheritance approach" do
         integer :count, required: false
       end
 
-      output = configured_schema.new("ConfiguredSchema").to_ruby_llm_schema
+      output = configured_schema.new("ConfiguredSchema").to_json_schema
 
       expect(output).to include(
-        name: "ConfiguredSchema",
-        description: "Test description",
-        schema: hash_including(
-          type: "object",
-          properties: {
-            title: {type: "string"},
-            count: {type: "integer"}
-          },
-          required: [:title],
-          additionalProperties: false,
-          strict: true
-        )
+        "title" => "ConfiguredSchema",
+        "description" => "Test description",
+        "type" => "object",
+        "properties" => {
+          "title" => {"type" => "string"},
+          "count" => {"type" => "integer"}
+        },
+        "required" => ["title"],
+        "additionalProperties" => false
       )
     end
 
@@ -84,7 +77,7 @@ RSpec.describe RubyLLM::Schema, "class inheritance approach" do
       end
 
       expect(RedefinedSchema.required_properties).to eq([:name])
-      expect(RedefinedSchema.new.to_ruby_llm_schema[:schema][:required]).to eq([:name])
+      expect(RedefinedSchema.new.to_json_schema["required"]).to eq(["name"])
     end
 
     it "returns nil from property declarations" do
@@ -102,7 +95,7 @@ RSpec.describe RubyLLM::Schema, "class inheritance approach" do
       schema_class.string :name, required: false
 
       expect(schema_class.required_properties).to eq([])
-      expect(schema_class.new.to_ruby_llm_schema[:schema][:required]).to eq([])
+      expect(schema_class.new.to_json_schema["required"]).to eq([])
     end
   end
 
@@ -111,7 +104,6 @@ RSpec.describe RubyLLM::Schema, "class inheritance approach" do
       build_schema_class do
         description "Comprehensive test schema"
         additional_properties true
-        strict true
 
         string :name, description: "Name field"
         integer :count
@@ -131,15 +123,14 @@ RSpec.describe RubyLLM::Schema, "class inheritance approach" do
     end
 
     it "supports full-feature schemas" do
-      json_output = schema_class.new("TestSchema").to_ruby_llm_schema
+      json_output = schema_class.new("TestSchema").to_json_schema
 
-      expect(json_output[:name]).to eq("TestSchema")
-      expect(json_output[:schema][:additionalProperties]).to eq(true)
-      expect(json_output[:schema][:strict]).to eq(true)
-      expect(json_output[:schema][:properties].keys).to contain_exactly(
-        :name, :count, :active, :config, :tags, :status
+      expect(json_output["title"]).to eq("TestSchema")
+      expect(json_output["additionalProperties"]).to eq(true)
+      expect(json_output["properties"].keys).to contain_exactly(
+        "name", "count", "active", "config", "tags", "status"
       )
-      expect(json_output[:schema][:required]).to contain_exactly(:name, :count, :config, :tags, :status)
+      expect(json_output["required"]).to contain_exactly("name", "count", "config", "tags", "status")
     end
   end
 end

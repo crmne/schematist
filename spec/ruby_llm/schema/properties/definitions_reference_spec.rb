@@ -20,19 +20,19 @@ RSpec.describe RubyLLM::Schema, "definitions and references" do
     expect(ref_hash).to eq({"$ref" => "#/$defs/address"})
 
     instance = schema_class.new
-    json_output = instance.to_ruby_llm_schema
+    json_output = instance.to_json_schema
 
-    expect(json_output[:schema]["$defs"][:address]).to include(
-      type: "object",
-      properties: {
-        street: {type: "string"},
-        city: {type: "string"}
+    expect(json_output["$defs"]["address"]).to include(
+      "type" => "object",
+      "properties" => {
+        "street" => {"type" => "string"},
+        "city" => {"type" => "string"}
       },
-      required: %i[street city]
+      "required" => %w[street city]
     )
 
-    user_props = json_output[:schema][:properties][:user][:properties]
-    expect(user_props[:addresses][:items]).to eq({"$ref" => "#/$defs/address"})
+    user_props = json_output["properties"]["user"]["properties"]
+    expect(user_props["addresses"]["items"]).to eq({"$ref" => "#/$defs/address"})
   end
 
   it "supports reference to the root schema" do
@@ -41,9 +41,9 @@ RSpec.describe RubyLLM::Schema, "definitions and references" do
     schema_class.object :sub_schema, of: :root
 
     instance = schema_class.new
-    json_output = instance.to_ruby_llm_schema
+    json_output = instance.to_json_schema
 
-    expect(json_output[:schema][:properties][:sub_schema]).to eq({"$ref" => "#"})
+    expect(json_output["properties"]["sub_schema"]).to eq({"$ref" => "#"})
   end
 
   it "supports reference to a defined schema by block" do
@@ -60,17 +60,17 @@ RSpec.describe RubyLLM::Schema, "definitions and references" do
     end
 
     instance = schema_class.new
-    json_output = instance.to_ruby_llm_schema
+    json_output = instance.to_json_schema
 
-    expect(json_output[:schema][:properties][:user][:properties][:address]).to eq({"$ref" => "#/$defs/address"})
-    expect(json_output[:schema]["$defs"][:address]).to eq({
-      type: "object",
-      properties: {
-        street: {type: "string"},
-        city: {type: "string"}
+    expect(json_output["properties"]["user"]["properties"]["address"]).to eq({"$ref" => "#/$defs/address"})
+    expect(json_output["$defs"]["address"]).to eq({
+      "type" => "object",
+      "properties" => {
+        "street" => {"type" => "string"},
+        "city" => {"type" => "string"}
       },
-      required: %i[street city],
-      additionalProperties: false
+      "required" => %w[street city],
+      "additionalProperties" => false
     })
   end
 
@@ -86,17 +86,17 @@ RSpec.describe RubyLLM::Schema, "definitions and references" do
     end
 
     instance = schema_class.new
-    json_output = instance.to_ruby_llm_schema
+    json_output = instance.to_json_schema
 
-    expect(json_output[:schema][:properties][:user][:properties][:address]).to eq({"$ref" => "#/$defs/address"})
-    expect(json_output[:schema]["$defs"][:address]).to eq({
-      type: "object",
-      properties: {
-        street: {type: "string"},
-        city: {type: "string"}
+    expect(json_output["properties"]["user"]["properties"]["address"]).to eq({"$ref" => "#/$defs/address"})
+    expect(json_output["$defs"]["address"]).to eq({
+      "type" => "object",
+      "properties" => {
+        "street" => {"type" => "string"},
+        "city" => {"type" => "string"}
       },
-      required: %i[street city],
-      additionalProperties: false
+      "required" => %w[street city],
+      "additionalProperties" => false
     })
   end
 
@@ -124,13 +124,13 @@ RSpec.describe RubyLLM::Schema, "definitions and references" do
 
     schema_class.object :address, of: :address
 
-    defs = schema_class.new.to_ruby_llm_schema[:schema]["$defs"][:address]
+    defs = schema_class.new.to_json_schema["$defs"]["address"]
 
-    expect(defs[:if]).to eq({
-      properties: {"country" => {const: "US"}},
-      required: ["country"]
+    expect(defs["if"]).to eq({
+      "properties" => {"country" => {"const" => "US"}},
+      "required" => ["country"]
     })
-    expect(defs[:then]).to eq({required: ["state"]})
+    expect(defs["then"]).to eq({"required" => ["state"]})
   end
 
   it "includes dependent in $defs" do
@@ -145,9 +145,9 @@ RSpec.describe RubyLLM::Schema, "definitions and references" do
 
     schema_class.object :payment, of: :payment
 
-    defs = schema_class.new.to_ruby_llm_schema[:schema]["$defs"][:payment]
+    defs = schema_class.new.to_json_schema["$defs"]["payment"]
 
-    expect(defs[:dependentRequired]).to eq({"credit_card" => ["billing_address"]})
+    expect(defs["dependentRequired"]).to eq({"credit_card" => ["billing_address"]})
   end
 
   it "includes inline requires: in $defs" do
@@ -158,9 +158,9 @@ RSpec.describe RubyLLM::Schema, "definitions and references" do
 
     schema_class.object :payment, of: :payment
 
-    defs = schema_class.new.to_ruby_llm_schema[:schema]["$defs"][:payment]
+    defs = schema_class.new.to_json_schema["$defs"]["payment"]
 
-    expect(defs[:dependentRequired]).to eq({"credit_card" => ["billing_address"]})
+    expect(defs["dependentRequired"]).to eq({"credit_card" => ["billing_address"]})
   end
 
   it "shows deprecation warning if using reference option" do

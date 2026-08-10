@@ -726,24 +726,24 @@ The schema name maps to `title`. Provider-only keys such as `strict` are not par
 
 ### Migrating from the provider envelope
 
-`to_json_schema` used to return a RubyLLM/provider envelope. That envelope now lives under `to_ruby_llm_schema`, unchanged:
+`to_json_schema` used to return a provider envelope — `{name:, description:, schema:, strict:}`, the shape OpenAI's `response_format` expects. That envelope is gone. Building it is the provider client's job, not this gem's.
+
+If you were reaching into `[:schema]` to get at the document, drop the digging — `to_json_schema` now returns the document itself. Note its keys are strings, not symbols:
 
 ```ruby
-schema.to_ruby_llm_schema
-# => {
-#   name: "PersonSchema",
-#   description: nil,
-#   schema: {
-#     type: "object",
-#     properties: { ... },
-#     required: [...],
-#     additionalProperties: false,
-#     strict: true
-#   }
-# }
+schema.to_json_schema[:schema][:properties]   # before
+schema.to_json_schema["properties"]           # now
 ```
 
-If you pass schemas to RubyLLM or another provider that expects the envelope, rename your `to_json_schema` calls to `to_ruby_llm_schema`. If you were reaching into `[:schema]` to get at the document, use `to_json_schema` and drop the digging — but note its keys are strings, not symbols.
+If you need the envelope for a provider that expects it, build it where you send it:
+
+```ruby
+{
+  name: "PersonSchema",
+  schema: PersonSchema.new.to_json_schema,
+  strict: true
+}
+```
 
 ## License
 

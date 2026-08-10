@@ -62,31 +62,6 @@ RSpec.describe RubyLLM::Schema, "JSON Schema output" do
     end
   end
 
-  describe "#to_ruby_llm_schema" do
-    it "returns the provider envelope with symbol keys" do
-      expect(schema_class.new("PersonSchema").to_ruby_llm_schema).to eq({
-        name: "PersonSchema",
-        description: nil,
-        schema: {
-          type: "object",
-          properties: {
-            name: {type: "string"},
-            age: {type: "integer"}
-          },
-          required: [:name],
-          additionalProperties: false,
-          strict: true
-        }
-      })
-    end
-
-    it "omits strict when it is set to nil" do
-      schema_class.strict nil
-
-      expect(schema_class.new.to_ruby_llm_schema[:schema]).not_to have_key(:strict)
-    end
-  end
-
   describe "#to_json" do
     it "serializes the Draft 2020-12 document" do
       expect(JSON.parse(schema_class.new("PersonSchema").to_json)).to eq(schema_class.new("PersonSchema").to_json_schema)

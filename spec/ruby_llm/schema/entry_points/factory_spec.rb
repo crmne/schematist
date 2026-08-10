@@ -10,10 +10,10 @@ RSpec.describe RubyLLM::Schema, "factory method (.create) approach" do
 
     it "derives schema names from constants, instances, and defaults" do
       stub_const("NamedFactorySchema", build_factory_schema { string :title })
-      expect(NamedFactorySchema.new.to_ruby_llm_schema[:name]).to eq("NamedFactorySchema")
+      expect(NamedFactorySchema.new.to_json_schema["title"]).to eq("NamedFactorySchema")
 
-      expect(base_schema.new.to_ruby_llm_schema[:name]).to eq("Schema")
-      expect(base_schema.new("CustomName").to_ruby_llm_schema[:name]).to eq("CustomName")
+      expect(base_schema.new.to_json_schema["title"]).to eq("Schema")
+      expect(base_schema.new("CustomName").to_json_schema["title"]).to eq("CustomName")
     end
 
     it "honours description precedence" do
@@ -22,30 +22,27 @@ RSpec.describe RubyLLM::Schema, "factory method (.create) approach" do
         string :title
       end
 
-      anonymous_output = base_schema.new.to_ruby_llm_schema
-      expect(anonymous_output[:description]).to be_nil
+      anonymous_output = base_schema.new.to_json_schema
+      expect(anonymous_output["description"]).to be_nil
 
-      class_level_output = schema_with_description.new.to_ruby_llm_schema
-      expect(class_level_output[:description]).to eq("Factory description")
+      class_level_output = schema_with_description.new.to_json_schema
+      expect(class_level_output["description"]).to eq("Factory description")
 
-      instance_override = schema_with_description.new("NamedSchema", description: "Instance description").to_ruby_llm_schema
-      expect(instance_override[:description]).to eq("Instance description")
+      instance_override = schema_with_description.new("NamedSchema", description: "Instance description").to_json_schema
+      expect(instance_override["description"]).to eq("Instance description")
     end
 
-    it "controls additional properties and strictness" do
-      default_output = base_schema.new.to_ruby_llm_schema
-      expect(default_output[:schema][:additionalProperties]).to eq(false)
-      expect(default_output[:schema][:strict]).to eq(true)
+    it "controls additional properties" do
+      default_output = base_schema.new.to_json_schema
+      expect(default_output["additionalProperties"]).to eq(false)
 
       configured_schema = build_factory_schema do
         additional_properties true
-        strict false
         string :title
       end
 
-      configured_output = configured_schema.new.to_ruby_llm_schema
-      expect(configured_output[:schema][:additionalProperties]).to eq(true)
-      expect(configured_output[:schema][:strict]).to eq(false)
+      configured_output = configured_schema.new.to_json_schema
+      expect(configured_output["additionalProperties"]).to eq(true)
     end
 
     it "renders structured JSON schema" do
@@ -56,21 +53,18 @@ RSpec.describe RubyLLM::Schema, "factory method (.create) approach" do
         integer :count, required: false
       end
 
-      output = configured_schema.new("FactoryConfiguredSchema").to_ruby_llm_schema
+      output = configured_schema.new("FactoryConfiguredSchema").to_json_schema
 
       expect(output).to include(
-        name: "FactoryConfiguredSchema",
-        description: "Factory test description",
-        schema: hash_including(
-          type: "object",
-          properties: {
-            title: {type: "string"},
-            count: {type: "integer"}
-          },
-          required: [:title],
-          additionalProperties: false,
-          strict: true
-        )
+        "title" => "FactoryConfiguredSchema",
+        "description" => "Factory test description",
+        "type" => "object",
+        "properties" => {
+          "title" => {"type" => "string"},
+          "count" => {"type" => "integer"}
+        },
+        "required" => ["title"],
+        "additionalProperties" => false
       )
     end
   end
@@ -80,7 +74,6 @@ RSpec.describe RubyLLM::Schema, "factory method (.create) approach" do
       build_factory_schema do
         description "Comprehensive factory schema"
         additional_properties true
-        strict true
 
         string :name, description: "Name field"
         integer :count
@@ -100,15 +93,14 @@ RSpec.describe RubyLLM::Schema, "factory method (.create) approach" do
     end
 
     it "supports full-feature schemas" do
-      json_output = schema_class.new("FactorySchema").to_ruby_llm_schema
+      json_output = schema_class.new("FactorySchema").to_json_schema
 
-      expect(json_output[:name]).to eq("FactorySchema")
-      expect(json_output[:schema][:additionalProperties]).to eq(true)
-      expect(json_output[:schema][:strict]).to eq(true)
-      expect(json_output[:schema][:properties].keys).to contain_exactly(
-        :name, :count, :active, :config, :tags, :status
+      expect(json_output["title"]).to eq("FactorySchema")
+      expect(json_output["additionalProperties"]).to eq(true)
+      expect(json_output["properties"].keys).to contain_exactly(
+        "name", "count", "active", "config", "tags", "status"
       )
-      expect(json_output[:schema][:required]).to contain_exactly(:name, :count, :config, :tags, :status)
+      expect(json_output["required"]).to contain_exactly("name", "count", "config", "tags", "status")
     end
   end
 end

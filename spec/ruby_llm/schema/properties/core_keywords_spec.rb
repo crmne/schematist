@@ -13,7 +13,7 @@ RSpec.describe RubyLLM::Schema, "core keywords" do
     schema_class.dynamic_ref "#node"
     schema_class.vocabulary "https://json-schema.org/draft/2020-12/vocab/core" => true
 
-    schema = schema_class.new.to_ruby_llm_schema[:schema]
+    schema = schema_class.new.to_json_schema
 
     expect(schema).to include(
       "$id" => "https://example.com/schemas/person",

@@ -20,20 +20,6 @@ module RubyLLM
         json_compatible(resolve_runtime_values(header.merge(document)))
       end
 
-      # The RubyLLM provider envelope. Superseded by to_json_schema; kept for the transition.
-      def to_ruby_llm_schema
-        validate! # Validate schema before generating JSON
-
-        schema = resolve_runtime_values(schema_body)
-        schema[:strict] = self.class.strict unless self.class.strict.nil?
-
-        {
-          name: @name,
-          description: resolve_runtime_values(@description || self.class.description),
-          schema: schema
-        }
-      end
-
       def to_json(*_args)
         validate! # Validate schema before generating JSON string
         JSON.pretty_generate(to_json_schema)

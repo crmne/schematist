@@ -6,7 +6,7 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
   let(:schema_class) { Class.new(described_class) }
 
   def schema_output
-    schema_class.new.to_ruby_llm_schema[:schema]
+    schema_class.new.to_json_schema
   end
 
   describe "condition coercion" do
@@ -18,7 +18,7 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
         requires :permissions
       end
 
-      expect(schema_output[:if][:properties]["role"]).to eq({const: "admin"})
+      expect(schema_output["if"]["properties"]["role"]).to eq({"const" => "admin"})
     end
 
     it "coerces array to enum" do
@@ -29,7 +29,7 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
         requires :reason
       end
 
-      expect(schema_output[:if][:properties]["status"]).to eq({enum: %w[suspended banned]})
+      expect(schema_output["if"]["properties"]["status"]).to eq({"enum" => %w[suspended banned]})
     end
 
     it "coerces regexp to pattern" do
@@ -40,7 +40,7 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
         requires :employee_id
       end
 
-      expect(schema_output[:if][:properties]["email"]).to eq({pattern: "@acme\\.com$"})
+      expect(schema_output["if"]["properties"]["email"]).to eq({"pattern" => "@acme\\.com$"})
     end
 
     it "passes hash through as raw schema" do
@@ -51,7 +51,7 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
         requires :parental_consent
       end
 
-      expect(schema_output[:if][:properties]["age"]).to eq({maximum: 17})
+      expect(schema_output["if"]["properties"]["age"]).to eq({"maximum" => 17})
     end
 
     it "coerces integer to const" do
@@ -62,7 +62,7 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
         requires :badge
       end
 
-      expect(schema_output[:if][:properties]["level"]).to eq({const: 10})
+      expect(schema_output["if"]["properties"]["level"]).to eq({"const" => 10})
     end
 
     it "coerces boolean to const" do
@@ -73,7 +73,7 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
         requires :deactivation_reason
       end
 
-      expect(schema_output[:if][:properties]["active"]).to eq({const: false})
+      expect(schema_output["if"]["properties"]["active"]).to eq({"const" => false})
     end
   end
 
@@ -89,11 +89,11 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
 
       schema = schema_output
 
-      expect(schema[:if][:properties]).to eq({
-        "country" => {const: "US"},
-        "role" => {const: "employee"}
+      expect(schema["if"]["properties"]).to eq({
+        "country" => {"const" => "US"},
+        "role" => {"const" => "employee"}
       })
-      expect(schema[:if][:required]).to contain_exactly("country", "role")
+      expect(schema["if"]["required"]).to contain_exactly("country", "role")
     end
   end
 
@@ -107,7 +107,7 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
         requires :permissions, :department
       end
 
-      expect(schema_output[:then][:required]).to eq(%w[permissions department])
+      expect(schema_output["then"]["required"]).to eq(%w[permissions department])
     end
 
     it "supports validates with type and string constraints" do
@@ -118,10 +118,10 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
         validates :date, type: :string, min_length: 10, pattern: "^\\d{4}-\\d{2}-\\d{2}"
       end
 
-      expect(schema_output[:then][:properties]["date"]).to eq({
-        type: "string",
-        minLength: 10,
-        pattern: "^\\d{4}-\\d{2}-\\d{2}"
+      expect(schema_output["then"]["properties"]["date"]).to eq({
+        "type" => "string",
+        "minLength" => 10,
+        "pattern" => "^\\d{4}-\\d{2}-\\d{2}"
       })
     end
 
@@ -133,7 +133,7 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
         validates :code, min_length: 3, max_length: 10
       end
 
-      expect(schema_output[:then][:properties]["code"]).to eq({minLength: 3, maxLength: 10})
+      expect(schema_output["then"]["properties"]["code"]).to eq({"minLength" => 3, "maxLength" => 10})
     end
 
     it "supports validates with numeric constraints" do
@@ -144,7 +144,7 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
         validates :discount, type: :number, minimum: 10, maximum: 50
       end
 
-      expect(schema_output[:then][:properties]["discount"]).to eq({type: "number", minimum: 10, maximum: 50})
+      expect(schema_output["then"]["properties"]["discount"]).to eq({"type" => "number", "minimum" => 10, "maximum" => 50})
     end
 
     it "supports validates with enum" do
@@ -155,7 +155,7 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
         validates :state, enum: %w[CA NY TX]
       end
 
-      expect(schema_output[:then][:properties]["state"]).to eq({enum: %w[CA NY TX]})
+      expect(schema_output["then"]["properties"]["state"]).to eq({"enum" => %w[CA NY TX]})
     end
 
     it "supports validates with not_value" do
@@ -169,8 +169,8 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
 
       schema = schema_output
 
-      expect(schema[:then][:required]).to eq(["notes"])
-      expect(schema[:then][:properties]["notes"]).to eq({not: {const: "N/A"}})
+      expect(schema["then"]["required"]).to eq(["notes"])
+      expect(schema["then"]["properties"]["notes"]).to eq({"not" => {"const" => "N/A"}})
     end
 
     it "preserves falsey constraint values" do
@@ -181,7 +181,7 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
         validates :reason, const: false
       end
 
-      expect(schema_output[:then][:properties]["reason"]).to eq({const: false})
+      expect(schema_output["then"]["properties"]["reason"]).to eq({"const" => false})
     end
 
     it "preserves not_value: false" do
@@ -192,7 +192,7 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
         validates :verified, not_value: false
       end
 
-      expect(schema_output[:then][:properties]["verified"]).to eq({not: {const: false}})
+      expect(schema_output["then"]["properties"]["verified"]).to eq({"not" => {"const" => false}})
     end
 
     it "raises on unknown validates option" do
@@ -214,7 +214,7 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
         validates :zip_code, pattern: /^\d{5}(-\d{4})?$/
       end
 
-      expect(schema_output[:then][:properties]["zip_code"]).to eq({pattern: "^\\d{5}(-\\d{4})?$"})
+      expect(schema_output["then"]["properties"]["zip_code"]).to eq({"pattern" => "^\\d{5}(-\\d{4})?$"})
     end
   end
 
@@ -234,8 +234,8 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
 
       schema = schema_output
 
-      expect(schema[:then][:required]).to eq(["state"])
-      expect(schema[:else][:required]).to eq(["country"])
+      expect(schema["then"]["required"]).to eq(["state"])
+      expect(schema["else"]["required"]).to eq(["country"])
     end
 
     it "omits else when otherwise is not used" do
@@ -263,8 +263,8 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
 
       schema = schema_output
 
-      expect(schema[:then][:properties]["max_items"]).to eq({type: "integer", minimum: 100})
-      expect(schema[:else][:properties]["max_items"]).to eq({type: "integer", maximum: 10})
+      expect(schema["then"]["properties"]["max_items"]).to eq({"type" => "integer", "minimum" => 100})
+      expect(schema["else"]["properties"]["max_items"]).to eq({"type" => "integer", "maximum" => 10})
     end
   end
 
@@ -279,11 +279,11 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
 
       schema = schema_output
 
-      expect(schema[:if]).to eq({
-        properties: {"role" => {const: "admin"}},
-        required: ["role"]
+      expect(schema["if"]).to eq({
+        "properties" => {"role" => {"const" => "admin"}},
+        "required" => ["role"]
       })
-      expect(schema[:then]).to eq({required: ["permissions"]})
+      expect(schema["then"]).to eq({"required" => ["permissions"]})
       expect(schema).not_to have_key(:allOf)
     end
 
@@ -303,9 +303,9 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
       schema = schema_output
 
       expect(schema).not_to have_key(:if)
-      expect(schema[:allOf].length).to eq(2)
-      expect(schema[:allOf][0][:if][:properties]["role"][:const]).to eq("admin")
-      expect(schema[:allOf][1][:if][:properties]["role"][:const]).to eq("developer")
+      expect(schema["allOf"].length).to eq(2)
+      expect(schema["allOf"][0]["if"]["properties"]["role"]["const"]).to eq("admin")
+      expect(schema["allOf"][1]["if"]["properties"]["role"]["const"]).to eq("developer")
     end
 
     it "does not include conditions when none are defined" do
@@ -334,10 +334,10 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
         array :addresses, of: address_schema, required: false
       end
 
-      items = parent_schema.new.to_ruby_llm_schema[:schema][:properties][:addresses][:items]
+      items = parent_schema.new.to_json_schema["properties"]["addresses"]["items"]
 
-      expect(items[:if][:properties]["country"]).to eq({const: "US"})
-      expect(items[:then][:required]).to eq(["state"])
+      expect(items["if"]["properties"]["country"]).to eq({"const" => "US"})
+      expect(items["then"]["required"]).to eq(["state"])
     end
 
     it "includes else in JSON schema output" do
@@ -355,8 +355,8 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
 
       schema = schema_output
 
-      expect(schema[:then][:required]).to eq(["state"])
-      expect(schema[:else][:required]).to eq(["country"])
+      expect(schema["then"]["required"]).to eq(["state"])
+      expect(schema["else"]["required"]).to eq(["country"])
     end
   end
 
@@ -372,7 +372,7 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
 
       schema = schema_output
 
-      expect(schema[:dependentRequired]).to eq({"credit_card" => ["billing_address"]})
+      expect(schema["dependentRequired"]).to eq({"credit_card" => ["billing_address"]})
       expect(schema).not_to have_key(:dependentSchemas)
     end
 
@@ -385,14 +385,14 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
         requires :billing_address, :cvv
       end
 
-      expect(schema_output[:dependentRequired]).to eq({"credit_card" => %w[billing_address cvv]})
+      expect(schema_output["dependentRequired"]).to eq({"credit_card" => %w[billing_address cvv]})
     end
 
     it "supports inline requires: with a single field" do
       schema_class.number :credit_card, required: false, requires: :billing_address
       schema_class.string :billing_address, required: false
 
-      expect(schema_output[:dependentRequired]).to eq({"credit_card" => ["billing_address"]})
+      expect(schema_output["dependentRequired"]).to eq({"credit_card" => ["billing_address"]})
     end
 
     it "supports inline requires: with multiple fields" do
@@ -400,7 +400,7 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
       schema_class.string :billing_address, required: false
       schema_class.string :cvv, required: false
 
-      expect(schema_output[:dependentRequired]).to eq({"credit_card" => %w[billing_address cvv]})
+      expect(schema_output["dependentRequired"]).to eq({"credit_card" => %w[billing_address cvv]})
     end
 
     it "supports inline requires: on different property types" do
@@ -409,7 +409,7 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
       schema_class.boolean :active, required: false, requires: :activated_at
       schema_class.string :activated_at, required: false
 
-      expect(schema_output[:dependentRequired]).to eq({
+      expect(schema_output["dependentRequired"]).to eq({
         "email" => ["name"],
         "active" => ["activated_at"]
       })
@@ -421,14 +421,14 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
       end
       schema_class.string :billing_address, required: false
 
-      expect(schema_output[:dependentRequired]).to eq({"payment" => ["billing_address"]})
+      expect(schema_output["dependentRequired"]).to eq({"payment" => ["billing_address"]})
     end
 
     it "supports inline requires: on array properties" do
       schema_class.array :items, of: :string, required: false, requires: :item_count
       schema_class.integer :item_count, required: false
 
-      expect(schema_output[:dependentRequired]).to eq({"items" => ["item_count"]})
+      expect(schema_output["dependentRequired"]).to eq({"items" => ["item_count"]})
     end
 
     it "outputs dependentSchemas when validates are used" do
@@ -443,10 +443,10 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
       schema = schema_output
 
       expect(schema).not_to have_key(:dependentRequired)
-      expect(schema[:dependentSchemas]).to eq({
+      expect(schema["dependentSchemas"]).to eq({
         "credit_card" => {
-          required: ["billing_address"],
-          properties: {"billing_address" => {type: "string", minLength: 1}}
+          "required" => ["billing_address"],
+          "properties" => {"billing_address" => {"type" => "string", "minLength" => 1}}
         }
       })
     end
@@ -465,7 +465,7 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
         requires :email
       end
 
-      expect(schema_output[:dependentRequired]).to eq({
+      expect(schema_output["dependentRequired"]).to eq({
         "credit_card" => ["billing_address"],
         "name" => ["email"]
       })
@@ -488,11 +488,11 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
 
       schema = schema_output
 
-      expect(schema[:dependentRequired]).to eq({"name" => ["email"]})
-      expect(schema[:dependentSchemas]).to eq({
+      expect(schema["dependentRequired"]).to eq({"name" => ["email"]})
+      expect(schema["dependentSchemas"]).to eq({
         "credit_card" => {
-          required: ["billing_address"],
-          properties: {"billing_address" => {type: "string", minLength: 1}}
+          "required" => ["billing_address"],
+          "properties" => {"billing_address" => {"type" => "string", "minLength" => 1}}
         }
       })
     end
@@ -511,9 +511,9 @@ RSpec.describe RubyLLM::Schema, "conditional properties" do
         object :payment, of: payment_schema
       end
 
-      payment = order_schema.new.to_ruby_llm_schema[:schema][:properties][:payment]
+      payment = order_schema.new.to_json_schema["properties"]["payment"]
 
-      expect(payment[:dependentRequired]).to eq({"credit_card" => ["billing_address"]})
+      expect(payment["dependentRequired"]).to eq({"credit_card" => ["billing_address"]})
     end
 
     it "does not include dependencies when none are defined" do
