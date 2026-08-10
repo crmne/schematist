@@ -16,6 +16,13 @@ RSpec.describe RubyLLM::Schema, "string properties" do
     })
   end
 
+  it "supports string const values" do
+    schema_class.string :role, const: "admin"
+
+    properties = schema_class.properties
+    expect(properties[:role]).to eq({type: "string", const: "admin"})
+  end
+
   it "supports string type with additional options" do
     schema_class.string :email, format: "email", min_length: 5, max_length: 100, pattern: "\\S+@\\S+", description: "Email field"
 

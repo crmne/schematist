@@ -224,6 +224,7 @@ end
 String types support the following properties:
 
 - `enum`: an array of allowed values (e.g. `enum: ["on", "off"]`)
+- `const`: the single allowed value (e.g. `const: "admin"`)
 - `pattern`: a regex pattern (e.g. `pattern: "\\d+"`)
 - `format`: a format string (e.g. `format: "email"`)
 - `min_length`: the minimum length of the string (e.g. `min_length: 3`)
@@ -236,6 +237,7 @@ string :name, description: "Person's full name"
 string :email, format: "email"
 string :phone, pattern: "\\d+"
 string :status, enum: ["on", "off"]
+string :role, const: "admin"
 string :code, min_length: 3, max_length: 10
 ```
 
@@ -244,6 +246,7 @@ string :code, min_length: 3, max_length: 10
 Number and integer types support the following properties:
 
 - `enum`: an array of allowed numeric values (e.g. `enum: [0, 1, 2]`)
+- `const`: the single allowed value (e.g. `const: 1`)
 - `multiple_of`: a multiple of the number (e.g. `multiple_of: 0.01`)
 - `minimum`: the minimum value of the number (e.g. `minimum: 0`)
 - `maximum`: the maximum value of the number (e.g. `maximum: 100`)
@@ -261,9 +264,10 @@ integer :level, enum: [0, 1, 2]
 
 ```ruby
 boolean :is_active
+boolean :accepted_terms, const: true
 ```
 
-Boolean types doesn't support any additional properties.
+Boolean types only support `const`, the single allowed value.
 
 ### Null
 
