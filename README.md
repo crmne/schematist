@@ -210,6 +210,40 @@ boolean :is_active, description: "Whether the person is active"
 null :placeholder, description: "A placeholder property"
 ```
 
+### Annotations
+
+Annotations describe a schema for humans and tools. They carry no validation weight.
+
+Supported annotations are `title`, `description`, `default`, `examples`, `deprecated`, `read_only`, and `write_only`.
+
+Short annotations read well as keyword arguments:
+
+```ruby
+string :email,
+  title: "Email address",
+  description: "Primary contact email",
+  default: "user@example.com",
+  examples: ["alice@example.com"],
+  deprecated: false,
+  read_only: false,
+  write_only: false
+```
+
+Longer ones read better inside the block, where they annotate the enclosing schema:
+
+```ruby
+object :account do
+  title "Account"
+  description "Billing account metadata used for invoices."
+  examples [{ id: "acct_123", status: "active" }]
+
+  string :id
+  string :status
+end
+```
+
+They work at the root of a schema class and inside `define` too. When the same annotation is given both as a keyword and inside the block, the keyword wins.
+
 ⚠️ Please consult the LLM provider documentation for any limitations or restrictions. For example, as of now, OpenAI requires all properties to be required. In that case, you can use the `any_of` method to make a property optional.
 
 ```ruby

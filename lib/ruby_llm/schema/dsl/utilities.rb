@@ -48,8 +48,10 @@ module RubyLLM
 
         private
 
-        # Merges everything a schema class collects beyond its properties: key constraints and conditionals
+        # Merges everything a schema class collects beyond its properties: annotations, key constraints, conditionals.
+        # Annotations are defaults, so an option passed to the enclosing builder wins over them.
         def merge_schema_keywords(schema, schema_class)
+          schema.replace(schema_class.annotations.merge(schema))
           schema.merge!(schema_class.object_keywords)
           merge_conditions(schema, schema_class)
         end
