@@ -21,6 +21,8 @@ Gem::Specification.new do |spec|
   spec.metadata['bug_tracker_uri'] = "#{source_uri}/issues"
   spec.metadata['rubygems_mfa_required'] = 'true'
 
+  spec.add_dependency 'zeitwerk', '~> 2'
+
   spec.files = Dir.glob('lib/**/*') + ['README.md', 'LICENSE']
   spec.require_paths = ['lib']
 end
