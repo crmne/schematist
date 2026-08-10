@@ -275,6 +275,25 @@ string :role, const: "admin"
 string :code, min_length: 3, max_length: 10
 ```
 
+### Encoded String Content
+
+Strings that carry encoded content can describe what is inside them.
+
+- `content_encoding`: how the string is encoded (e.g. `content_encoding: "base64"`)
+- `content_media_type`: the media type of the decoded content (e.g. `content_media_type: "application/json"`)
+- `content_schema`: a block describing the schema of the decoded content
+
+```ruby
+string :payload, content_encoding: "base64", content_media_type: "application/json" do
+  content_schema do
+    object do
+      string :name
+      string :email
+    end
+  end
+end
+```
+
 ### Numbers
 
 Number and integer types support the following properties:
