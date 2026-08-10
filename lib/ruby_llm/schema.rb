@@ -15,6 +15,17 @@ module RubyLLM
 
     PRIMITIVE_TYPES = %i[string number integer boolean null].freeze
 
+    # Annotations describe a schema for humans and tools. They carry no validation weight.
+    ANNOTATIONS = {
+      title: :title,
+      description: :description,
+      default: :default,
+      examples: :examples,
+      deprecated: :deprecated,
+      read_only: :readOnly,
+      write_only: :writeOnly
+    }.freeze
+
     class << self
       def create(&block)
         schema_class = Class.new(Schema)
@@ -41,9 +52,36 @@ module RubyLLM
         super()
       end
 
-      def description(description = nil)
-        @description = description if description
-        @description
+      def annotations
+        @annotations ||= {}
+      end
+
+      def title(*args)
+        annotation(:title, *args)
+      end
+
+      def description(*args)
+        annotation(:description, *args)
+      end
+
+      def default(*args)
+        annotation(:default, *args)
+      end
+
+      def examples(*args)
+        annotation(:examples, *args)
+      end
+
+      def deprecated(*args)
+        annotation(:deprecated, *args)
+      end
+
+      def read_only(*args)
+        annotation(:read_only, *args)
+      end
+
+      def write_only(*args)
+        annotation(:write_only, *args)
       end
 
       def additional_properties(value = nil)
@@ -68,6 +106,15 @@ module RubyLLM
       def valid?
         validator = Validator.new(self)
         validator.valid?
+      end
+
+      private
+
+      def annotation(name, *args)
+        keyword = ANNOTATIONS.fetch(name)
+        return annotations[keyword] if args.empty?
+
+        annotations[keyword] = args.first
       end
     end
 
