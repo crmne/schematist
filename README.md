@@ -71,9 +71,9 @@ chat     = RubyLLM.chat
 response = chat.with_schema(PersonSchema)
                .ask("Generate a person named Alice who is 30 years old and lives in New York")
 
-# The response is automatically parsed from JSON
-puts response.content # => {"name" => "Alice", "age" => 30}
-puts response.content.class # => Hash
+# Content stays the raw JSON string, and #parsed gives you the Hash
+puts response.content # => "{\"name\":\"Alice\",\"age\":30}"
+puts response.parsed  # => {"name" => "Alice", "age" => 30}
 ```
 
 ### RubyLLM tools
@@ -87,8 +87,8 @@ class SearchParams < Schematist::Schema
 end
 
 class SearchDocuments < RubyLLM::Tool
-  desc "Searches internal documents"
-  params SearchParams
+  description "Searches internal documents"
+  parameters SearchParams
 
   def execute(query:, limit: 10)
     DocumentSearch.call(query:, limit:)
@@ -96,13 +96,13 @@ class SearchDocuments < RubyLLM::Tool
 end
 ```
 
-For tool-specific parameters, define the schema inline with `params do ... end`.
+For tool-specific arguments, define the schema inline with `parameters do ... end`.
 
 ```ruby
 class Weather < RubyLLM::Tool
-  desc "Gets current weather"
+  description "Gets current weather"
 
-  params do
+  parameters do
     string :city, description: "City name"
     string :units, enum: %w[celsius fahrenheit], required: false
   end
