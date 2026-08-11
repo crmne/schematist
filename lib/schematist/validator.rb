@@ -49,15 +49,10 @@ module Schematist
       # Mark node with temporary mark
       marks[node] = GRAY
 
-      # Visit all adjacent nodes (dependencies)
-      definition = definitions[node]
-      if definition && definition[:properties]
-        definition[:properties].each_value do |property|
-          references = extract_references(property)
-          references.each do |adjacent_node|
-            visit(adjacent_node, definitions, marks)
-          end
-        end
+      # Visit all adjacent nodes (dependencies). A definition is any schema, not only an
+      # object with properties, so the whole thing is searched for references.
+      extract_references(definitions[node]).each do |adjacent_node|
+        visit(adjacent_node, definitions, marks)
       end
 
       # Mark node with permanent mark

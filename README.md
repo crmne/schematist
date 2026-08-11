@@ -542,6 +542,50 @@ any_of :value do
 end
 ```
 
+### Schemas That Aren't Objects
+
+A type with a name declares a property. Without a name it declares what the schema itself is. That is how a root, or a definition, becomes something other than an object.
+
+```ruby
+class Tags < Schematist::Schema
+  array of: :string, unique: true      # the whole schema is an array
+end
+
+class Id < Schematist::Schema
+  one_of do                            # the whole schema is a choice
+    string
+    integer
+  end
+end
+
+class Person < Schematist::Schema
+  raw({ "$ref" => "https://example.com/person.json" })
+end
+```
+
+The same rule applies inside `define`, so a definition can be any schema:
+
+```ruby
+define :status do
+  string enum: %w[draft sent]          # a reusable string
+end
+
+define :address do
+  string :street                       # named, so an object with properties
+end
+```
+
+Objects also take their keywords at the root:
+
+```ruby
+class Metadata < Schematist::Schema
+  string :name
+  min_properties 1
+  max_properties 10
+  unevaluated_properties false
+end
+```
+
 ### Schema Definitions and References
 
 You can define sub-schemas and reference them in other schemas, or reference the root schema to generate recursive schemas.

@@ -91,6 +91,29 @@ module Schematist
         core_keyword(:vocabulary, *args)
       end
 
+      # The schema this class is, when it is not an object built from properties. Set by
+      # calling a type without a name: `string enum: %w[a b]` rather than `string :status`.
+      def self_schema(definition = nil)
+        @self_schema = definition if definition
+        @self_schema
+      end
+
+      def min_properties(value = nil)
+        object_keyword(:minProperties, value)
+      end
+
+      def max_properties(value = nil)
+        object_keyword(:maxProperties, value)
+      end
+
+      def unevaluated_properties(value = nil)
+        object_keyword(:unevaluatedProperties, value)
+      end
+
+      def unevaluated_items(value = nil)
+        object_keyword(:unevaluatedItems, value)
+      end
+
       def additional_properties(value = nil)
         return @additional_properties ||= false if value.nil?
 
@@ -108,6 +131,12 @@ module Schematist
       end
 
       private
+
+      def object_keyword(keyword, value)
+        return object_keywords[keyword] if value.nil?
+
+        object_keywords[keyword] = value
+      end
 
       def annotation(name, *args)
         read_or_write(annotations, ANNOTATIONS.fetch(name), *args)

@@ -27,17 +27,10 @@ module Schematist
     private
 
     def schema_body
-      schema_hash = {
-        type: "object",
-        properties: self.class.properties,
-        required: self.class.required_properties,
-        additionalProperties: self.class.additional_properties
-      }
+      schema_hash = self.class.send(:schema_for, self.class)
 
       # Only include $defs if there are definitions
       schema_hash["$defs"] = self.class.definitions unless self.class.definitions.empty?
-
-      self.class.send(:merge_schema_keywords, schema_hash, self.class)
 
       schema_hash
     end

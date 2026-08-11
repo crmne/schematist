@@ -8,16 +8,7 @@ module Schematist
         sub_schema = Class.new(Schema)
         sub_schema.class_eval(&)
 
-        schema = {
-          type: "object",
-          properties: sub_schema.properties,
-          required: sub_schema.required_properties,
-          additionalProperties: sub_schema.additional_properties
-        }
-
-        merge_schema_keywords(schema, sub_schema)
-
-        definitions[name] = schema
+        definitions[name] = schema_for(sub_schema)
       end
 
       def object_keywords
@@ -46,6 +37,26 @@ module Schematist
       end
 
       private
+
+      # What a schema class means as a schema: whatever it declared itself to be, or an object
+      # built from its properties.
+      def schema_for(schema_class)
+        schema = schema_class.self_schema&.dup || {
+          type: "object",
+          properties: schema_class.properties,
+          required: schema_class.required_properties,
+          additionalProperties: schema_class.additional_properties
+        }
+
+        merge_schema_keywords(schema, schema_class)
+      end
+
+      # Declares a property when given a name, and what this schema is when not.
+      def add_property_or_self(name, definition, required:, requires: nil)
+        return self_schema(definition) && nil if name.nil?
+
+        add_property(name, definition, required: required, requires: requires)
+      end
 
       # Merges everything a schema class collects beyond its properties: annotations, core keywords,
       # key constraints, conditionals. Annotations are defaults, so an option passed to the enclosing

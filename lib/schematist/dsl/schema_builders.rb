@@ -185,15 +185,10 @@ module Schematist
           schema_class_to_inline_schema(result).merge(description ? {description: description} : {})
         # Block didn't return reference or schema, so we build an inline object schema
         else
-          schema = {
-            type: "object",
-            properties: sub_schema.properties,
-            required: sub_schema.required_properties,
-            additionalProperties: sub_schema.additional_properties,
-            description: description
-          }.compact
-
-          merge_schema_keywords(schema, sub_schema)
+          schema = schema_for(sub_schema)
+          # The keyword wins over an annotation set inside the block
+          schema[:description] = description if description
+          schema
         end
       end
 
