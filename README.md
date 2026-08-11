@@ -5,7 +5,9 @@
 [![codecov](https://codecov.io/gh/crmne/schematist/branch/main/graph/badge.svg)](https://codecov.io/gh/crmne/schematist)
 [![Ruby Style Guide](https://img.shields.io/badge/code_style-rubocop-brightgreen.svg)](https://github.com/rubocop/rubocop)
 
-A Ruby DSL for creating JSON schemas with a clean, Rails-inspired API.
+A Ruby DSL for creating JSON schemas with a clean, Rails-inspired API. Emits Draft 2020-12 documents and depends on nothing.
+
+**Formerly `RubyLLM::Schema`.** The gem was renamed in 1.0 because it was never about LLMs. See [Migrating from ruby_llm-schema](#migrating-from-ruby_llm-schema).
 
 Originally created by [Daniel Friis](https://github.com/danielfriis).
 
