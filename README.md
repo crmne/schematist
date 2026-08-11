@@ -366,12 +366,26 @@ end
 
 ### Tuples
 
-A tuple is a fixed-length array where each position has its own schema. It emits `prefixItems` along with matching `minItems` and `maxItems`.
+A tuple is an array where each position has its own schema. It emits `prefixItems`, and by default it is exactly as long as its prefix.
 
 ```ruby
 tuple :coordinates do
   number description: "Latitude"
   number description: "Longitude"
+end
+```
+
+Give it somewhere for the rest to go and it stops being fixed length. `of:` types the tail, `unevaluated_items:` closes it off after the prefix, and an explicit `max_items:` sets its own bound.
+
+```ruby
+tuple :event, of: :string do        # prefixItems, then strings
+  string
+  integer
+end
+
+tuple :pair, unevaluated_items: false do
+  string
+  string
 end
 ```
 

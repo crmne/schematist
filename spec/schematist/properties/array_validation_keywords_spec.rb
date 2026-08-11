@@ -89,4 +89,47 @@ RSpec.describe Schematist::Schema, "array validation keywords" do
       items: {type: "integer"}
     })
   end
+
+  it "gives a tuple a typed tail with of:" do
+    schema_class.tuple :event, of: :string do
+      string
+      integer
+    end
+
+    expect(schema_class.properties[:event]).to eq({
+      type: "array",
+      prefixItems: [{type: "string"}, {type: "integer"}],
+      items: {type: "string"},
+      minItems: 2
+    })
+  end
+
+  it "closes a tuple at the end with unevaluated_items" do
+    schema_class.tuple :event, unevaluated_items: false do
+      string
+    end
+
+    expect(schema_class.properties[:event]).to eq({
+      type: "array",
+      prefixItems: [{type: "string"}],
+      minItems: 1,
+      unevaluatedItems: false
+    })
+  end
+
+  it "lets an explicit max_items open a tuple" do
+    schema_class.tuple :event, max_items: 5 do
+      string
+    end
+
+    expect(schema_class.properties[:event]).to include(minItems: 1, maxItems: 5)
+  end
+
+  it "supports unevaluatedItems on composition schemas" do
+    schema_class.all_of :value, unevaluated_items: false do
+      object { string :a }
+    end
+
+    expect(schema_class.properties[:value][:unevaluatedItems]).to be(false)
+  end
 end

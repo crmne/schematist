@@ -98,57 +98,67 @@ module Schematist
         }.compact, annotations, schema_block)
       end
 
-      def tuple_schema(description: nil, **annotations, &block)
+      def tuple_schema(description: nil, of: nil, min_items: nil, max_items: nil, unevaluated_items: nil, **annotations, &block)
         schema_block = collect_schema_block(&block)
         schemas = schema_block.schemas
+        tail = determine_array_items(of) if of
+
+        # A tuple is exactly its prefix unless you give it somewhere for the rest to go
+        closed = tail.nil? && unevaluated_items.nil? && max_items.nil?
 
         annotate({
           type: "array",
           description: description,
           prefixItems: schemas,
-          minItems: schemas.length,
-          maxItems: schemas.length
+          items: tail,
+          minItems: min_items || schemas.length,
+          maxItems: closed ? schemas.length : max_items,
+          unevaluatedItems: unevaluated_items
         }.compact, annotations, schema_block)
       end
 
-      def any_of_schema(description: nil, unevaluated_properties: nil, **annotations, &block)
+      def any_of_schema(description: nil, unevaluated_properties: nil, unevaluated_items: nil, **annotations, &block)
         schema_block = collect_schema_block(&block)
 
         annotate({
           description: description,
           anyOf: schema_block.schemas,
-          unevaluatedProperties: unevaluated_properties
+          unevaluatedProperties: unevaluated_properties,
+          unevaluatedItems: unevaluated_items
         }.compact, annotations, schema_block)
       end
 
-      def one_of_schema(description: nil, unevaluated_properties: nil, **annotations, &block)
+      def one_of_schema(description: nil, unevaluated_properties: nil, unevaluated_items: nil, **annotations, &block)
         schema_block = collect_schema_block(&block)
 
         annotate({
           description: description,
           oneOf: schema_block.schemas,
-          unevaluatedProperties: unevaluated_properties
+          unevaluatedProperties: unevaluated_properties,
+          unevaluatedItems: unevaluated_items
         }.compact, annotations, schema_block)
       end
 
-      def all_of_schema(description: nil, unevaluated_properties: nil, **annotations, &block)
+      def all_of_schema(description: nil, unevaluated_properties: nil, unevaluated_items: nil, **annotations, &block)
         schema_block = collect_schema_block(&block)
 
         annotate({
           description: description,
           allOf: schema_block.schemas,
-          unevaluatedProperties: unevaluated_properties
+          unevaluatedProperties: unevaluated_properties,
+          unevaluatedItems: unevaluated_items
         }.compact, annotations, schema_block)
       end
 
-      def none_of_schema(description: nil, unevaluated_properties: nil, **annotations, &block)
+      def none_of_schema(description: nil, unevaluated_properties: nil, unevaluated_items: nil, **annotations, &block)
         schema_block = collect_schema_block(&block)
         schemas = schema_block.schemas
 
         annotate({
           description: description,
           not: schemas.size == 1 ? schemas.first : {anyOf: schemas},
-          unevaluatedProperties: unevaluated_properties
+          unevaluatedProperties: unevaluated_properties,
+          unevaluatedItems: unevaluated_items
         }.compact, annotations, schema_block)
       end
 
