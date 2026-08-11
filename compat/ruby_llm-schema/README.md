@@ -5,7 +5,7 @@ final `ruby_llm-schema` release, which does nothing but depend on schematist and
 `RubyLLM::Schema` to `Schematist::Schema`.
 
 It lives in the schematist repo rather than its own, so the alias cannot drift from the gem
-it forwards to — the spec suite loads it and checks the aliases still resolve.
+it forwards to. The spec suite loads it and checks the aliases still resolve.
 
 ## Building and releasing
 
@@ -17,7 +17,7 @@ gem build ruby_llm-schema.gemspec
 gem push ruby_llm-schema-1.0.0.gem
 ```
 
-schematist 1.0.0 must be on RubyGems first — this gem depends on it.
+schematist 1.0.0 must be on RubyGems first, since this gem depends on it.
 
 The version tracks the schematist release it forwards to.
 
