@@ -174,6 +174,8 @@ module Schematist
       end
 
       def build_object_schema(description, &block)
+        raise InvalidObjectTypeError, "An object needs a block or an `of:` schema to describe it." unless block
+
         sub_schema = Class.new(Schema)
         result = sub_schema.class_eval(&block)
 

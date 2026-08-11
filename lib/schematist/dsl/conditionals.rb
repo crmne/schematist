@@ -18,10 +18,13 @@ module Schematist
         dependencies[property.to_s] = builder
       end
 
-      def given(**properties, &block)
-        raise ArgumentError, "given requires at least one property condition" if properties.empty?
+      # Matches on property values, or on any schema when one is passed explicitly:
+      #   given(status: "shipped") { ... }
+      #   given({required: %w[tax_id]}) { ... }
+      def given(condition = nil, **properties, &block)
+        raise ArgumentError, "given requires a condition" if condition.nil? && properties.empty?
 
-        if_schema = {
+        if_schema = condition || {
           properties: properties.transform_keys(&:to_s).transform_values { |v| coerce_condition(v) },
           required: properties.keys.map(&:to_s)
         }

@@ -530,7 +530,73 @@ RSpec.describe Schematist::Schema, "conditional properties" do
     it "raises when no property conditions are provided" do
       expect {
         schema_class.given { requires :name }
-      }.to raise_error(ArgumentError, /requires at least one property condition/)
+      }.to raise_error(ArgumentError, /requires a condition/)
+    end
+  end
+
+  describe "branches holding any schema" do
+    it "supports nested objects and arrays in a branch" do
+      schema_class.string :kind
+      schema_class.given kind: "business" do
+        object :tax_details do
+          string :vat_number
+        end
+        array :filings, of: :string
+      end
+
+      then_schema = schema_output["then"]
+
+      expect(then_schema["properties"]["tax_details"]["properties"]["vat_number"]).to eq({"type" => "string"})
+      expect(then_schema["properties"]["filings"]).to eq({"type" => "array", "items" => {"type" => "string"}})
+      expect(then_schema["required"]).to contain_exactly("tax_details", "filings")
+    end
+
+    it "supports a branch that is a reference" do
+      schema_class.string :kind
+      schema_class.define(:business) { string :vat }
+      schema_class.given(kind: "business") { raw({"$ref" => "#/$defs/business"}) }
+
+      expect(schema_output["then"]).to eq({"$ref" => "#/$defs/business"})
+    end
+
+    it "supports composition in a branch" do
+      schema_class.string :kind
+      schema_class.given kind: "either" do
+        any_of :value do
+          string
+          integer
+        end
+      end
+
+      expect(schema_output["then"]["properties"]["value"]["anyOf"].length).to eq(2)
+    end
+
+    it "supports an explicit if schema" do
+      schema_class.string :tax_id, required: false
+      schema_class.string :summary, required: false
+      schema_class.given({required: %w[tax_id]}) { requires :summary }
+
+      expect(schema_output["if"]).to eq({"required" => ["tax_id"]})
+      expect(schema_output["then"]).to eq({"required" => ["summary"]})
+    end
+
+    it "still emits dependentRequired when a dependency only lists fields" do
+      schema_class.string :credit_card, required: false
+      schema_class.string :billing_address, required: false
+      schema_class.dependent(:credit_card) { requires :billing_address }
+
+      expect(schema_output["dependentRequired"]).to eq({"credit_card" => ["billing_address"]})
+    end
+
+    it "upgrades to dependentSchemas when a dependency describes a schema" do
+      schema_class.string :credit_card, required: false
+      schema_class.dependent(:credit_card) do
+        object :billing do
+          string :street
+        end
+      end
+
+      expect(schema_output["dependentSchemas"]["credit_card"]["properties"]["billing"]).to include("type" => "object")
     end
   end
 end

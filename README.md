@@ -766,6 +766,32 @@ end
 
 Conditions propagate through nested schemas via `of:`.
 
+A branch is a schema, so anything you can write in a schema you can write in a branch. `requires` and `validates` stay as shorthands for the two common cases.
+
+```ruby
+given kind: "business" do
+  requires :vat_id
+
+  object :tax_details do
+    string :vat_number
+  end
+
+  array :filings, of: :string
+
+  otherwise do
+    validates :vat_id, type: :string
+  end
+end
+```
+
+`given` matches on property values. Pass a schema explicitly when the condition is something else:
+
+```ruby
+given({ required: %w[tax_id] }) do
+  requires :summary
+end
+```
+
 ## JSON Output
 
 `to_json_schema` returns a Draft 2020-12 JSON Schema document with string keys, ready to hand to any JSON Schema validator.
