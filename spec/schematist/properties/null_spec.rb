@@ -11,4 +11,10 @@ RSpec.describe Schematist::Schema, "null properties" do
     properties = schema_class.properties
     expect(properties[:placeholder]).to eq({type: "null", description: "Null field"})
   end
+
+  it "supports null enum values" do
+    schema_class.null :nothing, enum: [nil]
+
+    expect(schema_class.properties[:nothing]).to eq({type: "null", enum: [nil]})
+  end
 end

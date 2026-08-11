@@ -81,4 +81,12 @@ RSpec.describe Schematist::Schema, "numeric properties" do
     properties = schema_class.properties
     expect(properties[:level]).to eq({type: "integer", enum: [0, 1, 2]})
   end
+
+  it "supports format on numeric types" do
+    schema_class.integer :id, format: "int64"
+    schema_class.number :ratio, format: "double"
+
+    expect(schema_class.properties[:id]).to eq({type: "integer", format: "int64"})
+    expect(schema_class.properties[:ratio]).to eq({type: "number", format: "double"})
+  end
 end

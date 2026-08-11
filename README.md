@@ -302,6 +302,7 @@ Number and integer types support the following properties:
 
 - `enum`: an array of allowed numeric values (e.g. `enum: [0, 1, 2]`)
 - `const`: the single allowed value (e.g. `const: 1`)
+- `format`: a format string (e.g. `format: "int64"`)
 - `multiple_of`: a multiple of the number (e.g. `multiple_of: 0.01`)
 - `minimum`: the minimum value of the number (e.g. `minimum: 0`)
 - `maximum`: the maximum value of the number (e.g. `maximum: 100`)
@@ -320,17 +321,19 @@ integer :level, enum: [0, 1, 2]
 ```ruby
 boolean :is_active
 boolean :accepted_terms, const: true
+boolean :flag, enum: [true]
 ```
 
-Boolean types only support `const`, the single allowed value.
+Booleans support `const` and `enum`.
 
 ### Null
 
 ```ruby
 null :placeholder
+null :nothing, enum: [nil]
 ```
 
-Null types doesn't support any additional properties.
+Nulls support `enum`.
 
 ### Arrays
 

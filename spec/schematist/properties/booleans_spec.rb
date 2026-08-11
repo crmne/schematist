@@ -18,4 +18,10 @@ RSpec.describe Schematist::Schema, "boolean properties" do
     properties = schema_class.properties
     expect(properties[:enabled]).to eq({type: "boolean", const: false})
   end
+
+  it "supports boolean enum values" do
+    schema_class.boolean :enabled, enum: [true]
+
+    expect(schema_class.properties[:enabled]).to eq({type: "boolean", enum: [true]})
+  end
 end
