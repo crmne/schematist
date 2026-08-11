@@ -1,15 +1,14 @@
 # Schematist
 
 [![Gem Version](https://badge.fury.io/rb/schematist.svg)](https://rubygems.org/gems/schematist)
-[![Gem Downloads](https://img.shields.io/gem/dt/schematist)](https://rubygems.org/gems/schematist)
+[![Downloads](https://img.shields.io/gem/dt/schematist?label=downloads)](https://rubygems.org/gems/schematist)
+[![Downloads as ruby_llm-schema](https://img.shields.io/gem/dt/ruby_llm-schema?label=downloads%20as%20ruby_llm-schema)](https://rubygems.org/gems/ruby_llm-schema)
 [![codecov](https://codecov.io/gh/crmne/schematist/branch/main/graph/badge.svg)](https://codecov.io/gh/crmne/schematist)
 [![Ruby Style Guide](https://img.shields.io/badge/code_style-rubocop-brightgreen.svg)](https://github.com/rubocop/rubocop)
 
 A general purpose JSON Schema DSL for Ruby with a clean, Rails-inspired API. Emits Draft 2020-12 schemas and depends on nothing.
 
 **Formerly `RubyLLM::Schema`.** Trapping a general purpose JSON Schema DSL inside another gem's namespace was a disservice to anyone looking for one, so 1.0 gave it its own name. See [Migrating from ruby_llm-schema](#migrating-from-ruby_llm-schema).
-
-Originally created by [Daniel Friis](https://github.com/danielfriis).
 
 ## Use Cases
 
@@ -848,6 +847,12 @@ If you need the envelope for a provider that expects it, build it where you send
   strict: true
 }
 ```
+
+## Credits
+
+Schematist was created by [Daniel Friis](https://github.com/danielfriis) as `ruby_llm-schema`, and he handed the project over.
+
+The DSL was designed in the open, in [ruby_llm#11](https://github.com/crmne/ruby_llm/issues/11).
 
 ## License
 
