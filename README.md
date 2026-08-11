@@ -5,9 +5,9 @@
 [![codecov](https://codecov.io/gh/crmne/schematist/branch/main/graph/badge.svg)](https://codecov.io/gh/crmne/schematist)
 [![Ruby Style Guide](https://img.shields.io/badge/code_style-rubocop-brightgreen.svg)](https://github.com/rubocop/rubocop)
 
-A Ruby DSL for creating JSON schemas with a clean, Rails-inspired API. Emits Draft 2020-12 documents and depends on nothing.
+A general purpose JSON Schema DSL for Ruby with a clean, Rails-inspired API. Emits Draft 2020-12 schemas and depends on nothing.
 
-**Formerly `RubyLLM::Schema`.** The gem was renamed in 1.0 because it was never about LLMs. See [Migrating from ruby_llm-schema](#migrating-from-ruby_llm-schema).
+**Formerly `RubyLLM::Schema`.** Trapping a general purpose JSON Schema DSL inside another gem's namespace was a disservice to anyone looking for one, so 1.0 gave it its own name. See [Migrating from ruby_llm-schema](#migrating-from-ruby_llm-schema).
 
 Originally created by [Daniel Friis](https://github.com/danielfriis).
 
@@ -484,7 +484,7 @@ array :values, of: :integer, unevaluated_items: false
 
 ### Runtime Values
 
-Any schema value can be a proc, resolved when the schema is rendered. That lets one schema class produce different documents per instance — useful when an enum comes from the database.
+Any schema value can be a proc, resolved when the schema is rendered. One schema class then produces a different document per instance, which is what you want when an enum comes from the database.
 
 ```ruby
 class RoleSchema < Schematist::Schema
@@ -659,7 +659,7 @@ class PaymentSchema < Schematist::Schema
 end
 ```
 
-Use a `dependent` block when you also need validations — this upgrades the output to `dependentSchemas`:
+Use a `dependent` block when you also need validations. This upgrades the output to `dependentSchemas`:
 
 ```ruby
 dependent :credit_card do
@@ -724,13 +724,11 @@ schema.to_json_schema
 puts schema.to_json  # Pretty JSON string of the same document
 ```
 
-The schema name maps to `title`. Provider-only keys are not part of the document — `strict` was an OpenAI `response_format` flag, not a JSON Schema keyword, and has been removed. Set it where you build the request.
+The schema name maps to `title`. Provider-only keys are not part of the document. `strict` was an OpenAI `response_format` flag rather than a JSON Schema keyword, so it has been removed. Set it where you build the request.
 
 ### Migrating from ruby_llm-schema
 
-Schematist was called `ruby_llm-schema`. The old name put a general-purpose JSON Schema DSL inside another gem's namespace and implied it only made sense alongside an LLM client, which was never true.
-
-Update the gem, then the constants:
+`RubyLLM::Schema` is now `Schematist`. Update the gem, then the constants:
 
 ```ruby
 gem 'schematist'                      # was: gem 'ruby_llm-schema'
@@ -741,13 +739,13 @@ end
 include Schematist::Helpers               # was: RubyLLM::Helpers
 ```
 
-Errors moved up a level with the rename — `Schematist::ValidationError`, not `RubyLLM::Schema::ValidationError`. `strict` is gone; see below.
+Errors moved up a level with the rename: `Schematist::ValidationError`, not `RubyLLM::Schema::ValidationError`. `strict` is gone; see below.
 
 ### Migrating from the provider envelope
 
-`to_json_schema` used to return a provider envelope — `{name:, description:, schema:, strict:}`, the shape OpenAI's `response_format` expects. That envelope is gone. Building it is the provider client's job, not this gem's.
+`to_json_schema` returns the schema document itself. It used to return `{name:, description:, schema:, strict:}`, the shape OpenAI's `response_format` expects, and building that belongs in whatever talks to the provider.
 
-If you were reaching into `[:schema]` to get at the document, drop the digging — `to_json_schema` now returns the document itself. Note its keys are strings, not symbols:
+If you were reaching into `[:schema]` to get at the document, drop the digging. Note the keys are strings, not symbols:
 
 ```ruby
 schema.to_json_schema[:schema][:properties]   # before
