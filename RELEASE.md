@@ -18,8 +18,9 @@ and aliases `RubyLLM::Schema`, so anyone still on it picks up every schematist 1
 normal `bundle update`. It does not need a release of its own when schematist ships a new minor,
 and it should not get one: releasing a deprecated gem on a schedule makes it look maintained.
 
-It is not part of the automated release above. Publish it by hand, once, after schematist is on
-RubyGems:
+It publishes from CI like schematist does, in a job that runs after schematist so the dependency
+resolves. The version lives in `compat/ruby_llm-schema/ruby_llm-schema.gemspec`, and the job is a
+no-op once that version is on RubyGems. To release it by hand instead:
 
 ```bash
 cd compat/ruby_llm-schema

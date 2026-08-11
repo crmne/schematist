@@ -18,7 +18,9 @@ on:
       - ".github/workflows/_test-matrix.yml"
       - ".github/workflows/main.yml"
       - ".github/workflows/release.yml"
+      - ".github/workflows/release-compat.yml"
       - "lib/schematist/version.rb"
+      - "compat/**"
   workflow_dispatch:
 
 permissions:
@@ -120,5 +122,16 @@ jobs:
     uses: ./.github/workflows/release.yml
     permissions:
       contents: write
+      packages: write
+    secrets: inherit
+
+  # Runs after schematist, which the compatibility gem depends on. Always runs, because its
+  # version moves independently of schematist's, and it is a no-op once published.
+  release_compat:
+    needs: [release]
+    if: always() && needs.release.result != 'failure'
+    uses: ./.github/workflows/release-compat.yml
+    permissions:
+      contents: read
       packages: write
     secrets: inherit
