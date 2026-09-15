@@ -1,0 +1,34 @@
+labels:
+  bug: A reproducible defect in this project.
+  documentation: Incorrect or missing documentation for this project.
+  enhancement: A missing capability within the documented product scope.
+  invalid: The premise is directly disproved by repository evidence.
+  question: One specific missing technical fact prevents investigation.
+  wontfix: The exact request is explicitly ruled out by repository documentation.
+sources:
+- README.md
+- CONTRIBUTING.md
+- lib/**/*.rb
+replies:
+  version: Which version are you using?
+  reproduction: What are the shortest steps that reproduce this?
+  expected: What did you expect to happen instead?
+  error: What is the exact error message? Please remove secrets and personal data.
+  schema: What is the smallest schema that produces the incorrect output?
+instructions: |
+  Triage this project's issues and discussions using the supplied report and
+  latest comments. Add at most two justified labels to issues; no labels on
+  discussions. For a clear valid report, label silently. Ask for one missing
+  non-sensitive fact only when it prevents useful investigation, never for
+  information already supplied. Choose source files for a useful technical
+  answer and cite only what those files establish; otherwise leave reply null.
+  Leave uncertain diagnoses, product decisions, duplicate detection, and closure
+  to the maintainer. Do not promise implementation, releases, or tests. Never
+  repeat secrets or private data. Keep replies short, direct, and free of status
+  chatter, implementation plans, headings, and em dashes.
+
+  Schematist is a small standards-oriented JSON Schema DSL. Draft 2020-12
+  is the semantic reference. Application-specific schema builders and provider
+  policy belong outside the gem. Verify emitted behavior from DSL source or
+  documentation. Leave ambiguous semantics, compatibility, inheritance, and
+  new DSL design to the maintainer.
