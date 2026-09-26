@@ -20,6 +20,7 @@ on:
       - ".github/workflows/release.yml"
       - ".github/workflows/release-compat.yml"
       - "lib/schematist/version.rb"
+      - "packaging/release-notes/**"
       - "compat/**"
   workflow_dispatch:
 
@@ -108,6 +109,12 @@ jobs:
           fi
 
           if [ "$version_changed" = "true" ] || [ "$tag_missing" = "true" ] || [ "$release_missing" = "true" ]; then
+            # Stop before anything is published. Pushing the missing notes reruns this gate.
+            release_notes_path="packaging/release-notes/${TAG}.md"
+            if [ "$release_missing" = "true" ] && [ ! -s "$release_notes_path" ]; then
+              echo "Expected release notes at ${release_notes_path}." >&2
+              exit 1
+            fi
             echo "should_release=true" >> "$GITHUB_OUTPUT"
           else
             echo "should_release=false" >> "$GITHUB_OUTPUT"
