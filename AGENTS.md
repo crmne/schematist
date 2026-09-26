@@ -76,8 +76,8 @@ releases and match their style:
   known limitations honestly.
 
 Commit the notes as `packaging/release-notes/vX.Y.Z.md` before tagging, and
-have `.github/workflows/release.yml` publish that file with
-`gh release create --notes-file`. Never leave generated notes in place.
+have `.github/workflows/release.yml` publish that file as the release
+description. Never leave generated notes in place.
 
 A release is not finished until every link in its notes loads. Open the
 published release and check each link before announcing it.
