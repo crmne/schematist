@@ -10,7 +10,8 @@
 8. GitHub Actions will create the `vX.Y.Z` tag and GitHub Release from `packaging/release-notes/vX.Y.Z.md` if they do not already exist
 
 Note that step 7 fires on any change to `lib/schematist/version.rb`, so a version bump on `main`
-is a release. Hold the bump until everything else for that release has landed.
+is a release. Land the version bump and matching `packaging/release-notes/vX.Y.Z.md` together,
+otherwise the release job will fail.
 
 ## The ruby_llm-schema compatibility gem
 

@@ -53,9 +53,9 @@ releases and match their style:
 - Write about what changed for the user, not the commit history. Describe
   known limitations honestly.
 
-Commit the notes as `packaging/release-notes/vX.Y.Z.md` before tagging, and
-have `.github/workflows/release.yml` publish that file as the release
-description. Never leave generated notes in place.
+Commit the version bump and `packaging/release-notes/vX.Y.Z.md` together, then
+let `.github/workflows/release.yml` create the tag and publish that file as
+the release description. Never leave generated notes in place.
 
 A release is not finished until every link in its notes loads. Open the
 published release and check each link before announcing it.
