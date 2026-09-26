@@ -9,7 +9,7 @@
 7. GitHub Actions will publish the gem if the version is not already on RubyGems
 8. GitHub Actions will create the `vX.Y.Z` tag and GitHub Release from `packaging/release-notes/vX.Y.Z.md` if they do not already exist
 
-Note that step 6 fires on any change to `lib/schematist/version.rb`, so a version bump on `main`
+Note that step 7 fires on any change to `lib/schematist/version.rb`, so a version bump on `main`
 is a release. Hold the bump until everything else for that release has landed.
 
 ## The ruby_llm-schema compatibility gem
