@@ -40,18 +40,8 @@ fixes worth a changelog entry. The exception is a regression in something just
 released, which goes out as soon as it is fixed.
 
 Before writing release notes, read the repository's previous two stable
-releases and match their style:
-
-- Start with a short plain-language summary, followed by a download line when
-  the project ships binaries.
-- Use `New` and `Fixed` sections as applicable, and `Known limitations` when
-  there are any. Lead each item with a bold user-facing result and credit who
-  did what with issue or pull request numbers ("By @x; thanks @y"),
-  acknowledging reporters separately from implementers.
-- Include a `Thanks` section listing contributors and reporters, and end with
-  `**Full changelog**:` and a link comparing the previous tag.
-- Write about what changed for the user, not the commit history. Describe
-  known limitations honestly.
+releases when they exist and match their style. Write about what changed for
+the user, not the commit history, and describe known limitations honestly.
 
 Commit the version bump and `packaging/release-notes/vX.Y.Z.md` together, then
 let `.github/workflows/release.yml` create the tag and publish that file as
