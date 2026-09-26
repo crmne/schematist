@@ -139,30 +139,15 @@ jobs:
             prerelease_args=(--prerelease)
           fi
 
-          previous_tag=$(git tag --sort=-v:refname --list 'v*' | grep -v "^${TAG}$" | head -n 1 || true)
-          if [ -n "$previous_tag" ]; then
-            commit_range="${previous_tag}..${GITHUB_SHA}"
-          else
-            commit_range="$GITHUB_SHA"
+          release_notes_path="packaging/release-notes/${TAG}.md"
+          if [ ! -f "$release_notes_path" ]; then
+            echo "Expected checked-in release notes at ${release_notes_path}." >&2
+            exit 1
           fi
-
-          commits=$(git log --reverse --format='* %H %s' "$commit_range" | grep -Ev '^\* [0-9a-f]+ (docs|test|chore):' || true)
-          if [ -z "$commits" ]; then
-            commits=$(git log --reverse --format='* %H %s' "$commit_range")
-          fi
-
-          {
-            echo "## Changelog"
-            echo "$commits"
-            if [ -n "$previous_tag" ]; then
-              echo
-              echo "**Full Changelog**: https://github.com/${GITHUB_REPOSITORY}/compare/${previous_tag}...${TAG}"
-            fi
-          } > release-notes.md
 
           gh release create "$TAG" \
             --target "$GITHUB_SHA" \
-            --notes-file release-notes.md \
+            --notes-file "$release_notes_path" \
             "${prerelease_args[@]}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
