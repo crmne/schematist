@@ -140,14 +140,16 @@ jobs:
           fi
 
           release_notes_path="packaging/release-notes/${TAG}.md"
-          if [ ! -f "$release_notes_path" ]; then
+          if ! git cat-file -e "${GITHUB_SHA}:${release_notes_path}" 2>/dev/null; then
             echo "Expected checked-in release notes at ${release_notes_path}." >&2
             exit 1
           fi
 
+          git show "${GITHUB_SHA}:${release_notes_path}" > release-notes.md
+
           gh release create "$TAG" \
             --target "$GITHUB_SHA" \
-            --notes-file "$release_notes_path" \
+            --notes-file release-notes.md \
             "${prerelease_args[@]}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
