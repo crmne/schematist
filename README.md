@@ -498,6 +498,8 @@ object :profile, of: :person, unevaluated_properties: false
 array :values, of: :integer, unevaluated_items: false
 ```
 
+Objects are closed with `additionalProperties: false` by default, which would reject the properties the other branches declare. So when an `all_of` sets `unevaluated_properties`, the objects written inline in it leave `additionalProperties` out and let the `all_of` decide. A branch that calls `additional_properties` keeps what it sets, and a branch built from a schema class keeps what the class declares.
+
 ### Runtime Values
 
 Any schema value can be a proc, resolved when the schema is rendered. One schema class then produces a different document per instance, which is what you want when an enum comes from the database.

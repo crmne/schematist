@@ -140,7 +140,8 @@ module Schematist
       end
 
       def all_of_schema(description: nil, unevaluated_properties: nil, unevaluated_items: nil, **annotations, &block)
-        schema_block = collect_schema_block(&block)
+        # unevaluated_properties sees across the branches only if they leave additionalProperties to it
+        schema_block = collect_schema_block(open_objects: !unevaluated_properties.nil?, &block)
 
         annotate({
           description: description,
@@ -171,6 +172,21 @@ module Schematist
 
         block_keywords = schema_block ? schema_block.keywords : {}
         block_keywords.merge(schema).merge(annotations.transform_keys { |name| ANNOTATIONS.fetch(name) })
+      end
+
+      # An object that leaves additionalProperties out unless its block sets it. Objects built from
+      # a schema class keep whatever the class declares.
+      def open_object_schema(**options, &block)
+        return object_schema(**options, &block) if block.nil? || options[:of] || options[:reference]
+
+        closed = false
+        schema = object_schema(**options) do
+          class_eval(&block).tap do |result|
+            closed = instance_variable_defined?(:@additional_properties) || schema_class?(result)
+          end
+        end
+
+        closed ? schema : schema.except(:additionalProperties)
       end
 
       def build_object_schema(description, &block)
@@ -226,7 +242,7 @@ module Schematist
         collect_schema_block(&).schemas
       end
 
-      def collect_schema_block(&block)
+      def collect_schema_block(open_objects: false, &block)
         schema_block = SchemaBlock.new([], {})
         schema_builder = self
 
@@ -238,6 +254,12 @@ module Schematist
 
           context.define_singleton_method(type_name) do |_name = nil, **options, &blk|
             schema_block.schemas << schema_builder.send(schema_method, **options, &blk)
+          end
+        end
+
+        if open_objects
+          context.define_singleton_method(:object) do |_name = nil, **options, &blk|
+            schema_block.schemas << schema_builder.send(:open_object_schema, **options, &blk)
           end
         end
 
