@@ -55,7 +55,7 @@ jobs:
     outputs:
       should_release: ${{ steps.check_version.outputs.should_release }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 1
 
